@@ -2,6 +2,7 @@
    Project Manager — application stylesheet
 
    Plain CSS3, no framework. Organised as:
+     0. Typefaces
      1. Design tokens
      2. Reset and base elements
      3. Layout primitives
@@ -9,7 +10,81 @@
      5. Components (card, button, field, alert, badge, avatar)
      6. Authentication screens
      7. Utilities
+     8. Accessibility and polish
    ========================================================================== */
+
+/* 0. Typefaces =============================================================
+
+   Three self-hosted Nerd Fonts, all monospaced — the interface is deliberately
+   a terminal-flavoured one. Nothing is requested from a third party.
+
+   Built from the originals by fonts/build.py, which subsets away the thousands
+   of Powerline and Devicon glyphs this application never renders: 26 MB of
+   .ttf becomes about 115 KB of .woff2.
+
+   Each family is used for one role, chosen around the weights it actually
+   ships:
+
+     Source Code Pro   body and UI   the only one with a 600, which the
+                                     interface needs in twelve places
+     Iosevka Term Slab headings      slab serif for contrast; needs 700 only,
+                                     so its missing 600 never matters
+     Terminess         code and diffs the two monospace slots, both at 400
+
+   font-display: swap means text paints immediately in the fallback and
+   re-renders when the font arrives, rather than being invisible.
+   ========================================================================== */
+
+/* Source Code Pro — body and UI */
+@font-face {
+    font-family: "Source Code Pro Web";
+    src: url("../fonts/source-code-pro-400.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Source Code Pro Web";
+    src: url("../fonts/source-code-pro-500.woff2") format("woff2");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Source Code Pro Web";
+    src: url("../fonts/source-code-pro-600.woff2") format("woff2");
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Source Code Pro Web";
+    src: url("../fonts/source-code-pro-700.woff2") format("woff2");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Iosevka Term Slab — headings */
+@font-face {
+    font-family: "Iosevka Term Slab Web";
+    src: url("../fonts/iosevka-term-slab-700.woff2") format("woff2");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Terminess — code, value diffs and the verification code input */
+@font-face {
+    font-family: "Terminess Web";
+    src: url("../fonts/terminess-400.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
 
 /* 1. Design tokens ========================================================= */
 
@@ -54,8 +129,12 @@
     --space-6: 32px;
     --space-7: 48px;
 
-    --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    /* Every role is monospaced, so each stack falls back to the generic
+       monospace family rather than a proportional one — a fallback should
+       change the typeface, not the whole layout. */
+    --font: "Source Code Pro Web", ui-monospace, SFMono-Regular, Consolas, monospace;
+    --font-display: "Iosevka Term Slab Web", "Source Code Pro Web", ui-monospace, Consolas, monospace;
+    --font-mono: "Terminess Web", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
     --header-height: 60px;
 }
@@ -113,15 +192,28 @@ body {
     background: var(--bg);
     color: var(--text);
     font-family: var(--font);
-    font-size: 15px;
+    /* 14px rather than 15: a monospaced face sets wider than a proportional
+       one at the same size, and 15px cost too much density in the task lists
+       and Kanban cards. */
+    font-size: 14px;
     line-height: 1.55;
     -webkit-font-smoothing: antialiased;
+    /* Source Code Pro is a coding face with -> and != ligatures. Welcome in a
+       code block, wrong in a task title like "Fix != comparison", so they are
+       switched off everywhere except the .font-mono slots below. */
+    font-variant-ligatures: none;
+    font-feature-settings: "liga" 0, "calt" 0;
 }
 
 h1, h2, h3, h4 {
+    font-family: var(--font-display);
     line-height: 1.25;
-    font-weight: 650;
-    letter-spacing: -0.011em;
+    /* 700 rather than 650: the supplied faces are static, so a non-standard
+       weight would be snapped by the browser anyway. */
+    font-weight: 700;
+    /* Negative tracking suited the previous proportional face. Monospace is
+       already evenly spaced and reads cramped when pulled tighter. */
+    letter-spacing: 0;
 }
 
 h1 { font-size: 1.6rem; }
@@ -203,8 +295,8 @@ button, input, select, textarea {
     align-items: center;
     gap: var(--space-2);
     color: var(--text);
-    font-weight: 680;
-    letter-spacing: -0.015em;
+    font-weight: 700;
+    letter-spacing: 0;
 }
 
 .brand:hover {
@@ -303,7 +395,7 @@ button, input, select, textarea {
     background: var(--surface-2);
     color: var(--text);
     font-size: 0.925rem;
-    font-weight: 560;
+    font-weight: 600;
     text-decoration: none;
     cursor: pointer;
     transition: background-color 120ms ease, border-color 120ms ease, opacity 120ms ease;
@@ -362,7 +454,7 @@ button, input, select, textarea {
     display: block;
     margin-bottom: var(--space-2);
     font-size: 0.875rem;
-    font-weight: 560;
+    font-weight: 600;
 }
 
 .field input[type="text"],
@@ -448,7 +540,7 @@ button, input, select, textarea {
     background: transparent;
     color: var(--text-muted);
     font-size: 0.8rem;
-    font-weight: 560;
+    font-weight: 600;
     cursor: pointer;
 }
 
@@ -524,7 +616,7 @@ button, input, select, textarea {
     background: var(--surface-2);
     color: var(--text-muted);
     font-size: 0.75rem;
-    font-weight: 560;
+    font-weight: 600;
     white-space: nowrap;
 }
 
@@ -537,7 +629,7 @@ button, input, select, textarea {
     background: var(--primary-soft);
     color: var(--primary);
     font-size: 0.8rem;
-    font-weight: 650;
+    font-weight: 700;
     text-transform: uppercase;
 }
 
@@ -546,7 +638,7 @@ button, input, select, textarea {
     align-items: center;
     gap: var(--space-2);
     font-size: 0.9rem;
-    font-weight: 560;
+    font-weight: 600;
 }
 
 /* Empty state ---------------------------------------------------------------- */
@@ -592,9 +684,9 @@ button, input, select, textarea {
 
 .stat-value {
     font-size: 1.75rem;
-    font-weight: 680;
+    font-weight: 700;
     line-height: 1.1;
-    letter-spacing: -0.02em;
+    letter-spacing: 0;
 }
 
 .stat-label {
@@ -650,7 +742,7 @@ button, input, select, textarea {
 }
 
 .list-item-title {
-    font-weight: 560;
+    font-weight: 600;
 }
 
 .list-item-meta {
@@ -672,12 +764,12 @@ button, input, select, textarea {
 
 .is-overdue {
     color: var(--danger);
-    font-weight: 560;
+    font-weight: 600;
 }
 
 .is-due-today {
     color: var(--warning);
-    font-weight: 560;
+    font-weight: 600;
 }
 
 /* Progress -------------------------------------------------------------------- */
@@ -798,7 +890,7 @@ button, input, select, textarea {
 
 .meta-list dd {
     margin: var(--space-1) 0 0;
-    font-weight: 560;
+    font-weight: 600;
 }
 
 /* Activity feed ---------------------------------------------------------------------- */
@@ -825,6 +917,10 @@ button, input, select, textarea {
 .activity-diff {
     margin-top: var(--space-1);
     font-family: var(--font-mono);
+    /* Ligatures are switched off globally on body; re-enabled here, where a
+       code-style face is the point. */
+    font-variant-ligatures: normal;
+    font-feature-settings: normal;
     font-size: 0.75rem;
     color: var(--text-muted);
 }
@@ -878,7 +974,7 @@ button, input, select, textarea {
     border-radius: 999px;
     background: var(--surface-2);
     font-size: 0.8rem;
-    font-weight: 560;
+    font-weight: 600;
 }
 
 .tag-swatch {
@@ -1025,7 +1121,7 @@ button, input, select, textarea {
     display: block;
     color: var(--text);
     font-size: 0.9rem;
-    font-weight: 560;
+    font-weight: 600;
 }
 
 .board-card-title:hover {
@@ -1089,7 +1185,7 @@ button, input, select, textarea {
     background: var(--danger);
     color: #fff;
     font-size: 0.7rem;
-    font-weight: 650;
+    font-weight: 700;
 }
 
 .list-item.is-unread {
@@ -1191,8 +1287,10 @@ button, input, select, textarea {
 
 .token-input input {
     font-family: var(--font-mono);
+    font-variant-ligatures: normal;
+    font-feature-settings: normal;
     font-size: 1.4rem;
-    letter-spacing: 0.4em;
+    letter-spacing: 0.2em;
     text-align: center;
 }
 
@@ -1359,7 +1457,7 @@ button, input, select, textarea {
     background: var(--primary);
     color: var(--on-primary);
     border-radius: 0 0 var(--radius) var(--radius);
-    font-weight: 560;
+    font-weight: 600;
     transition: top 120ms ease;
 }
 

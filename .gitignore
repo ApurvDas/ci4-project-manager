@@ -124,3 +124,11 @@ _modules/*
 
 /results/
 /phpunit.xml
+
+# Nerd Font source archives and extracted originals: hundreds of megabytes.
+# Only the subsetted .woff2 files under public/assets/fonts/ are committed.
+# The build script itself is kept, so the fonts can be rebuilt from a fresh
+# download — git cannot re-include a file inside an excluded directory, so the
+# contents are excluded rather than the directory.
+/fonts/*
+!/fonts/build.py
