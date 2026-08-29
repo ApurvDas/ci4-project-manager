@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex">
     <title><?= $this->renderSection('title') ?> · Project Manager</title>
-    <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>">
+    <link rel="stylesheet" href="<?= versioned_asset('assets/css/app.css') ?>">
 </head>
 <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -31,6 +31,6 @@
         </footer>
     </div>
 
-    <script src="<?= base_url('assets/js/forms.js') ?>" defer></script>
+    <script src="<?= versioned_asset('assets/js/forms.js') ?>" defer></script>
 </body>
 </html>

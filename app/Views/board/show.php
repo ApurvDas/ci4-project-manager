@@ -97,6 +97,6 @@ $today     = date('Y-m-d');
 
 <p class="board-status" data-board-status role="status" aria-live="polite"></p>
 
-<script src="<?= base_url('assets/js/board.js') ?>" defer></script>
+<script src="<?= versioned_asset('assets/js/board.js') ?>" defer></script>
 
 <?= $this->endSection() ?>

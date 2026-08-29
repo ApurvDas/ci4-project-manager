@@ -16,7 +16,7 @@ $current     = static fn (string $path): string => url_is($path) ? 'page' : 'fal
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= $this->renderSection('title') ?> · Project Manager</title>
-    <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>">
+    <link rel="stylesheet" href="<?= versioned_asset('assets/css/app.css') ?>">
 </head>
 <body>
     <?php /* First tab stop: lets a keyboard user jump past the navigation. */ ?>
@@ -69,6 +69,6 @@ $current     = static fn (string $path): string => url_is($path) ? 'page' : 'fal
         </div>
     </footer>
 
-    <script src="<?= base_url('assets/js/forms.js') ?>" defer></script>
+    <script src="<?= versioned_asset('assets/js/forms.js') ?>" defer></script>
 </body>
 </html>

@@ -88,5 +88,8 @@ class Autoload extends AutoloadConfig
      *
      * @var list<string>
      */
-    public $helpers = ['auth', 'setting'];
+    // 'asset' provides versioned_asset(), used by every layout for cache
+    // busting. Loaded globally so it is present even for a controller that
+    // does not extend App\Controllers\BaseController.
+    public $helpers = ['auth', 'setting', 'asset'];
 }

@@ -67,3 +67,43 @@
 #--------------------------------------------------------------------
 
 # logger.threshold = 4
+
+#--------------------------------------------------------------------
+# PRODUCTION SETTINGS
+#--------------------------------------------------------------------
+# Uncomment and set these on the production server. Run
+# `php spark app:preflight` afterwards to confirm nothing is missed.
+#
+# Never commit the real .env file.
+
+# CI_ENVIRONMENT = production
+# app.baseURL = 'https://your-domain.example/'
+# app.forceGlobalSecureRequests = true
+# app.indexPage = ''
+
+# Reject requests with a spoofed Host header.
+# app.allowedHostnames = ['your-domain.example']
+
+# The session cookie must never travel over plain http.
+# cookie.secure = true
+# cookie.samesite = 'Lax'
+
+# Production database. Use a dedicated user, not root, with only the
+# privileges this application needs.
+# database.default.hostname = 127.0.0.1
+# database.default.database = project_manager
+# database.default.username = project_manager_app
+# database.default.password = 'a-real-password'
+# database.default.DBDriver = MySQLi
+# database.default.port = 3306
+
+# Mail. Until these are set, password recovery and email verification
+# cannot work — see docs/phase-15-auth-completion.md.
+# email.fromEmail = 'no-reply@your-domain.example'
+# email.fromName = 'Project Manager'
+# email.protocol = 'smtp'
+# email.SMTPHost = 'smtp.your-provider.example'
+# email.SMTPUser = 'smtp-username'
+# email.SMTPPass = 'smtp-password'
+# email.SMTPPort = 587
+# email.SMTPCrypto = 'tls'

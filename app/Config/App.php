@@ -40,7 +40,13 @@ class App extends BaseConfig
      * something else. If you have configured your web server to remove this file
      * from your site URIs, set this variable to an empty string.
      */
-    public string $indexPage = 'index.php';
+    /**
+     * Left empty so generated URLs are clean (/projects/1 rather than
+     * /index.php/projects/1). public/.htaccess rewrites requests to the front
+     * controller, and `php spark serve` does the same, so nothing needs to
+     * reference index.php by name.
+     */
+    public string $indexPage = '';
 
     /**
      * --------------------------------------------------------------------------

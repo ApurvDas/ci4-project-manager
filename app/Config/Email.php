@@ -4,10 +4,21 @@ namespace Config;
 
 use CodeIgniter\Config\BaseConfig;
 
+/**
+ * Mail settings.
+ *
+ * Every value here can be overridden from .env, which is where the real ones
+ * belong: .env is not committed, this file is. Nothing in this class should
+ * ever contain a real address, host or password.
+ *
+ * See docs/deployment.md, and docs/phase-15-auth-completion.md for why mail is
+ * not yet configured.
+ */
 class Email extends BaseConfig
 {
-    public string $fromEmail  = 'apps.apurv2000@gmail.com';
-    public string $fromName   = 'Apurv';
+    // Override with email.fromEmail / email.fromName in .env
+    public string $fromEmail  = 'no-reply@example.test';
+    public string $fromName   = 'Project Manager';
     public string $recipients = '';
 
     /**
