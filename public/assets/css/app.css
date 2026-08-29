@@ -916,12 +916,12 @@ button, input, select, textarea {
 
 .activity-diff {
     margin-top: var(--space-1);
-    font-family: var(--font-mono);
-    /* Ligatures are switched off globally on body; re-enabled here, where a
-       code-style face is the point. */
-    font-variant-ligatures: normal;
-    font-feature-settings: normal;
-    font-size: 0.75rem;
+    /* Source Code Pro rather than the Terminess mono face. Terminess is an
+       outline conversion of a bitmap terminal font: crisp at the pixel sizes it
+       was drawn for, thin and blurry at the 10.5px this block used. The body
+       face is monospaced too, so the columns still line up. */
+    font-family: var(--font);
+    font-size: 0.8125rem;
     color: var(--text-muted);
 }
 

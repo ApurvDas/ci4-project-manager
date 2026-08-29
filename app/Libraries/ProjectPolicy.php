@@ -27,6 +27,23 @@ class ProjectPolicy
 {
     private ProjectMemberModel $members;
 
+    /**
+     * Roles already looked up during this request, keyed "projectId:userId".
+     *
+     * A page asks the same questions repeatedly — the project view checks the
+     * viewer's own role once per member row and once per tag, and each check
+     * needs the actor's role as well as the target's. Without this the project
+     * page issued more than thirty near-identical queries; with it, one per
+     * distinct pair.
+     *
+     * The cache lives only as long as the instance, and controllers build a new
+     * policy per request, so it cannot outlive a membership change. Anything
+     * that alters membership mid-request should call flush() first.
+     *
+     * @var array<string, string|null>
+     */
+    private array $roleCache = [];
+
     public function __construct(?ProjectMemberModel $members = null)
     {
         $this->members = $members ?? model(ProjectMemberModel::class);
@@ -34,7 +51,23 @@ class ProjectPolicy
 
     public function roleFor(int $projectId, int $userId): ?string
     {
-        return $this->members->roleFor($projectId, $userId);
+        $key = $projectId . ':' . $userId;
+
+        // array_key_exists, not isset: a non-member caches as null and must
+        // stay cached rather than being looked up again on every check.
+        if (! array_key_exists($key, $this->roleCache)) {
+            $this->roleCache[$key] = $this->members->roleFor($projectId, $userId);
+        }
+
+        return $this->roleCache[$key];
+    }
+
+    /**
+     * Discard cached roles. Call after changing membership within a request.
+     */
+    public function flush(): void
+    {
+        $this->roleCache = [];
     }
 
     /**
@@ -42,7 +75,7 @@ class ProjectPolicy
      */
     public function canView(int $projectId, int $userId): bool
     {
-        return $this->members->isMember($projectId, $userId);
+        return $this->roleFor($projectId, $userId) !== null;
     }
 
     /**
@@ -50,7 +83,7 @@ class ProjectPolicy
      */
     public function canContribute(int $projectId, int $userId): bool
     {
-        return $this->members->hasAtLeast($projectId, $userId, ProjectMemberModel::ROLE_MEMBER);
+        return $this->atLeast($this->roleFor($projectId, $userId), ProjectMemberModel::ROLE_MEMBER);
     }
 
     /**
@@ -58,7 +91,24 @@ class ProjectPolicy
      */
     public function canManage(int $projectId, int $userId): bool
     {
-        return $this->members->hasAtLeast($projectId, $userId, ProjectMemberModel::ROLE_MANAGER);
+        return $this->atLeast($this->roleFor($projectId, $userId), ProjectMemberModel::ROLE_MANAGER);
+    }
+
+    /**
+     * Whether a held role is at least as privileged as the one required.
+     *
+     * Seniority comes from the order of ProjectMemberModel::ROLES, which runs
+     * most privileged first, so there is no second copy of the hierarchy to
+     * drift out of step with the model's.
+     */
+    private function atLeast(?string $role, string $minimum): bool
+    {
+        if ($role === null) {
+            return false;
+        }
+
+        return array_search($role, ProjectMemberModel::ROLES, true)
+            <= array_search($minimum, ProjectMemberModel::ROLES, true);
     }
 
     /**

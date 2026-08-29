@@ -101,10 +101,15 @@ $hasFilter = $filters['entity_type'] !== '' || $filters['action'] !== '' || $fil
                         <?php if (! empty($entry['new_values'])) : ?>
                             <div class="activity-diff">
                                 <?php foreach ($entry['new_values'] as $field => $newValue) : ?>
+                                    <?php $wasSet = ($entry['old_values'][$field] ?? null) !== null; ?>
                                     <?= esc($field) ?>:
-                                    <?= esc((string) ($entry['old_values'][$field] ?? '—')) ?>
-                                    &rarr; <?= esc((string) $newValue) ?><br>
-                                <?php endforeach ?>
+                                    <?php /* A creation has no previous value, so show just the new one rather
+                                             than a dash standing in for nothing. */ ?>
+                                    <?php if ($wasSet) : ?>
+                                        <?= esc((string) $entry['old_values'][$field]) ?> &rarr;
+                                    <?php endif ?>
+                                    <?= esc((string) $newValue) ?><br>
+                                    <?php endforeach ?>
                             </div>
                         <?php endif ?>
 
