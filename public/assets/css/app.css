@@ -887,6 +887,219 @@ button, input, select, textarea {
     border-radius: 50%;
 }
 
+/* Checkbox grids in forms ------------------------------------------------------------ */
+
+.check-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: var(--space-2) var(--space-4);
+}
+
+/* Checklists --------------------------------------------------------------------------- */
+
+.checklist {
+    padding: var(--space-4) var(--space-5);
+}
+
+.checklist + .checklist {
+    border-top: 1px solid var(--border);
+}
+
+.checklist-title {
+    margin-bottom: var(--space-3);
+    font-size: 0.95rem;
+}
+
+.checklist-items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-1) 0;
+}
+
+.checklist-item.is-done .checklist-text {
+    color: var(--text-subtle);
+    text-decoration: line-through;
+}
+
+.checklist-box {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    padding: 0;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--primary);
+    font-size: 0.75rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.checklist-box:hover {
+    border-color: var(--primary);
+}
+
+.checklist-add {
+    display: flex;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+}
+
+.checklist-add input {
+    flex: 1;
+    height: 32px;
+    padding: 0 var(--space-3);
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+}
+
+/* Kanban board -------------------------------------------------------------------------- */
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-4);
+    align-items: start;
+}
+
+.board-column {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+}
+
+.board-column-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border);
+}
+
+.board-column-head h2 {
+    font-size: 0.9rem;
+}
+
+.board-dropzone {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    /* Keeps an empty column a valid drop target. */
+    min-height: 90px;
+    padding: var(--space-3);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    transition: background-color 120ms ease;
+}
+
+.board-dropzone.is-over {
+    background: var(--primary-soft);
+}
+
+.board-card {
+    padding: var(--space-3);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    cursor: grab;
+}
+
+.board-card.is-dragging {
+    opacity: 0.45;
+    cursor: grabbing;
+}
+
+.board-card-title {
+    display: block;
+    color: var(--text);
+    font-size: 0.9rem;
+    font-weight: 560;
+}
+
+.board-card-title:hover {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.board-card-tags,
+.board-card-foot,
+.board-card-people {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+    font-size: 0.775rem;
+}
+
+.avatar-sm {
+    width: 22px;
+    height: 22px;
+    font-size: 0.65rem;
+}
+
+.board-status {
+    margin-top: var(--space-4);
+    color: var(--text-subtle);
+    font-size: 0.825rem;
+    min-height: 1.2em;
+}
+
+.board-status.is-error {
+    color: var(--danger);
+}
+
+/* Notifications ------------------------------------------------------------------------- */
+
+.notification-link {
+    position: relative;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.notification-link:hover {
+    background: var(--surface-2);
+    color: var(--text);
+    text-decoration: none;
+}
+
+.notification-count {
+    display: inline-grid;
+    place-items: center;
+    min-width: 18px;
+    height: 18px;
+    margin-left: var(--space-1);
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--danger);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 650;
+}
+
+.list-item.is-unread {
+    background: var(--primary-soft);
+}
+
+.notification-dot.is-read {
+    background: var(--border-strong);
+}
+
 /* Unread notification marker ---------------------------------------------------- */
 
 .notification-dot {
@@ -1015,6 +1228,18 @@ button, input, select, textarea {
     .panels {
         grid-template-columns: 1fr;
     }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Columns become a horizontally scrolling strip rather than shrinking to
+       an unusable width. */
+    .board {
+        grid-template-columns: repeat(4, minmax(230px, 1fr));
+        overflow-x: auto;
+        padding-bottom: var(--space-3);
+    }
 }
 
 @media (max-width: 720px) {
@@ -1049,4 +1274,30 @@ button, input, select, textarea {
     .user-chip span {
         display: none;
     }
+}
+
+/* Tag delete control ---------------------------------------------------------- */
+
+.tag-remove {
+    padding: 0 2px;
+    border: 0;
+    background: transparent;
+    color: var(--text-subtle);
+    font-size: 0.9rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.tag-remove:hover {
+    color: var(--danger);
+}
+
+.field input[type="color"] {
+    width: 100%;
+    height: 42px;
+    padding: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    cursor: pointer;
 }

@@ -81,6 +81,8 @@ class Projects extends BaseController
                 ? $members->candidatesFor($projectId)
                 : [],
             'taskCounts' => model(TaskModel::class)->statusCountsFor($projectId),
+            'tasks'      => model(TaskModel::class)->forProject($projectId),
+            'canWrite'   => $this->policy->canContribute($projectId, $userId),
             'progress'   => model(ProjectModel::class)->progressFor($projectId),
             'tags'       => model(TagModel::class)->forProject($projectId),
             'activity'   => model(ActivityLogModel::class)->recentForProject($projectId, 12),

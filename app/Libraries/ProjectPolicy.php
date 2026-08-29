@@ -70,6 +70,41 @@ class ProjectPolicy
     }
 
     /**
+     * Delete a task.
+     *
+     * Creating and updating tasks is open to every contributor, because that is
+     * the everyday work of the project. Deleting one destroys someone else's
+     * record of it, so it is limited to managers and the person who created it.
+     *
+     * @param array<string, mixed> $task
+     */
+    public function canDeleteTask(int $projectId, int $userId, array $task): bool
+    {
+        return $this->canManage($projectId, $userId)
+            || (int) $task['created_by'] === $userId;
+    }
+
+    /**
+     * Delete a comment: its author, or a manager clearing something up.
+     *
+     * @param array<string, mixed> $comment
+     */
+    public function canDeleteComment(int $projectId, int $userId, array $comment): bool
+    {
+        return $this->canManage($projectId, $userId)
+            || (int) $comment['user_id'] === $userId;
+    }
+
+    /**
+     * Tags are shared project furniture, so removing one affects every task
+     * that uses it — managers only. Creating one is open to contributors.
+     */
+    public function canDeleteTag(int $projectId, int $userId): bool
+    {
+        return $this->canManage($projectId, $userId);
+    }
+
+    /**
      * Whether the actor may add someone with the given role.
      *
      * Managers may bring in members and viewers, but may not mint another

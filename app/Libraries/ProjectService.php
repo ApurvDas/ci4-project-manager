@@ -25,6 +25,7 @@ class ProjectService
     private ProjectModel $projects;
     private ProjectMemberModel $members;
     private ActivityLogModel $activity;
+    private NotificationService $notifier;
     private BaseConnection $db;
 
     public function __construct()
@@ -32,6 +33,7 @@ class ProjectService
         $this->projects = model(ProjectModel::class);
         $this->members  = model(ProjectMemberModel::class);
         $this->activity = model(ActivityLogModel::class);
+        $this->notifier = new NotificationService();
         $this->db       = db_connect();
     }
 
@@ -209,6 +211,11 @@ class ProjectService
         );
 
         $this->db->transCommit();
+
+        // Sent after the commit: a notification failure must not undo the
+        // membership that caused it.
+        $project = $this->projects->find($projectId);
+        $this->notifier->memberAdded($projectId, $actorId, $userId, (string) ($project['name'] ?? 'a project'));
 
         return true;
     }

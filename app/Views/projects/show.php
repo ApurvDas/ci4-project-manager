@@ -108,15 +108,57 @@ $assignableRoles = $canAdmin
     <div class="stack">
         <section class="card">
             <div class="panel-head">
-                <h2>Task board</h2>
+                <h2>Tasks</h2>
+                <div class="toolbar">
+                    <a class="btn btn-secondary btn-sm" href="<?= url_to('board.show', $projectId) ?>">Board</a>
+                    <a class="btn btn-secondary btn-sm" href="<?= url_to('tasks.index', $projectId) ?>">List</a>
+                    <?php if ($canWrite) : ?>
+                        <a class="btn btn-primary btn-sm" href="<?= url_to('tasks.new', $projectId) ?>">New task</a>
+                    <?php endif ?>
+                </div>
             </div>
-            <div class="empty-state">
-                <h2>Tasks arrive next</h2>
-                <p>
-                    Task management and the Kanban board are built in the
-                    following phases. The counts above are already live.
-                </p>
-            </div>
+
+            <?php if ($tasks === []) : ?>
+                <div class="empty-state">
+                    <h2>No tasks yet</h2>
+                    <p>Break this project down into tasks to get started.</p>
+                </div>
+            <?php else : ?>
+                <ul class="list">
+                    <?php foreach (array_slice($tasks, 0, 8) as $task) : ?>
+                        <li class="list-item">
+                            <div>
+                                <div class="list-item-title">
+                                    <a href="<?= url_to('tasks.show', $projectId, (int) $task['id']) ?>">
+                                        <?= esc($task['title']) ?>
+                                    </a>
+                                </div>
+                                <div class="list-item-meta">
+                                    <?= $task['due_date'] === null
+                                        ? 'No due date'
+                                        : esc('Due ' . date('j M Y', strtotime($task['due_date']))) ?>
+                                </div>
+                            </div>
+                            <div class="list-item-aside">
+                                <span class="badge badge-priority-<?= esc($task['priority']) ?>">
+                                    <?= esc($humanise($task['priority'])) ?>
+                                </span>
+                                <span class="badge badge-status-<?= esc($task['status']) ?>">
+                                    <?= esc($humanise($task['status'])) ?>
+                                </span>
+                            </div>
+                        </li>
+                    <?php endforeach ?>
+                </ul>
+
+                <?php if (count($tasks) > 8) : ?>
+                    <div class="card-body" style="border-top: 1px solid var(--border);">
+                        <a href="<?= url_to('tasks.index', $projectId) ?>">
+                            View all <?= esc((string) count($tasks)) ?> tasks
+                        </a>
+                    </div>
+                <?php endif ?>
+            <?php endif ?>
         </section>
 
         <section class="card">
@@ -261,7 +303,7 @@ $assignableRoles = $canAdmin
             <?php if ($tags === []) : ?>
                 <div class="empty-state">
                     <h2>No tags</h2>
-                    <p>Tags are managed alongside tasks.</p>
+                    <p>Create tags to label and filter tasks.</p>
                 </div>
             <?php else : ?>
                 <div class="tag-list">
@@ -269,8 +311,35 @@ $assignableRoles = $canAdmin
                         <span class="tag">
                             <span class="tag-swatch" style="background: <?= esc($tag['color'], 'attr') ?>"></span>
                             <?= esc($tag['name']) ?>
+                            <?php if ($policy->canDeleteTag($projectId, $userId)) : ?>
+                                <form class="inline-form" method="post"
+                                      action="<?= url_to('tags.delete', $projectId, (int) $tag['id']) ?>"
+                                      onsubmit="return confirm('Delete this tag? It will be removed from every task that uses it.');">
+                                    <?= csrf_field() ?>
+                                    <button type="submit" class="tag-remove" aria-label="Delete tag <?= esc($tag['name'], 'attr') ?>">×</button>
+                                </form>
+                            <?php endif ?>
                         </span>
                     <?php endforeach ?>
+                </div>
+            <?php endif ?>
+
+            <?php if ($canWrite) : ?>
+                <div class="card-body" style="border-top: 1px solid var(--border);">
+                    <form method="post" action="<?= url_to('tags.store', $projectId) ?>">
+                        <?= csrf_field() ?>
+                        <div class="form-grid">
+                            <div class="field">
+                                <label for="tag-name">New tag</label>
+                                <input type="text" id="tag-name" name="name" maxlength="50" required>
+                            </div>
+                            <div class="field">
+                                <label for="tag-color">Colour</label>
+                                <input type="color" id="tag-color" name="color" value="#6B7280">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-secondary mt-4">Add tag</button>
+                    </form>
                 </div>
             <?php endif ?>
         </section>

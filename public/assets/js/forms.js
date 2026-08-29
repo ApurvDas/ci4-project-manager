@@ -209,8 +209,64 @@
         });
     }
 
+    /**
+     * Tick checklist items without reloading the page.
+     *
+     * The form still works normally if this never runs — it posts and the
+     * server redirects back. The server re-checks the permission either way.
+     */
+    function enableChecklistToggles(root) {
+        root.querySelectorAll('form[data-toggle-item]').forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+
+                var button = form.querySelector('.checklist-box');
+                var item = form.closest('.checklist-item');
+
+                fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin'
+                })
+                    .then(function (response) { return response.json(); })
+                    .then(function (data) {
+                        if (!data.ok) {
+                            window.location.reload();
+
+                            return;
+                        }
+
+                        var done = !item.classList.contains('is-done');
+                        item.classList.toggle('is-done', done);
+
+                        if (button) {
+                            button.textContent = done ? '✓' : '';
+                            button.setAttribute('aria-pressed', String(done));
+                        }
+
+                        var badge = document.querySelector('[data-checklist-progress]');
+
+                        if (badge && data.progress) {
+                            badge.textContent = data.progress.completed + '/' + data.progress.total +
+                                ' · ' + data.progress.percent + '%';
+                        }
+
+                        // The CSRF token rotates per request; refresh every
+                        // toggle form so the next click is still accepted.
+                        if (data.csrf) {
+                            root.querySelectorAll('input[name="' + data.csrf.name + '"]')
+                                .forEach(function (field) { field.value = data.csrf.hash; });
+                        }
+                    })
+                    .catch(function () { window.location.reload(); });
+            });
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('form[data-validated]').forEach(enhance);
         enablePasswordToggles(document);
+        enableChecklistToggles(document);
     });
 }());

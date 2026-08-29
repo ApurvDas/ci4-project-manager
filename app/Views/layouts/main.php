@@ -35,6 +35,7 @@ $current     = static fn (string $path): string => url_is($path) ? 'page' : 'fal
 
             <div class="app-header-actions">
                 <?php if ($currentUser !== null) : ?>
+                    <?= view_cell('App\Libraries\NotificationBadge::render') ?>
                     <span class="user-chip">
                         <span class="avatar" aria-hidden="true"><?= esc(mb_substr($currentUser->username ?? '?', 0, 1)) ?></span>
                         <span><?= esc($currentUser->username) ?></span>
