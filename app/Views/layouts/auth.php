@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>">
 </head>
 <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
     <div class="auth-shell">
         <div class="auth-brand">
             <a class="brand" href="<?= base_url('/') ?>">
@@ -16,7 +18,7 @@
             </a>
         </div>
 
-        <main class="auth-body">
+        <main class="auth-body" id="main-content" tabindex="-1">
             <div class="auth-card">
                 <div class="card-body">
                     <?= $this->renderSection('main') ?>

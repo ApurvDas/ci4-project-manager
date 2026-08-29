@@ -1271,7 +1271,8 @@ button, input, select, textarea {
         padding: var(--space-5);
     }
 
-    .user-chip span {
+    /* Hide only the username, never the avatar — which is also a span. */
+    .user-chip > span:not(.avatar) {
         display: none;
     }
 }
@@ -1341,4 +1342,104 @@ button, input, select, textarea {
 
 .pagination li.disabled span {
     opacity: 0.5;
+}
+
+/* ==========================================================================
+   8. Accessibility and polish
+   ========================================================================== */
+
+/* Skip link: hidden until focused, then pinned to the top-left.
+   Fixed rather than absolute so it is unaffected by page scroll. */
+.skip-link {
+    position: fixed;
+    top: -60px;
+    left: var(--space-3);
+    z-index: 100;
+    padding: var(--space-2) var(--space-4);
+    background: var(--primary);
+    color: var(--on-primary);
+    border-radius: 0 0 var(--radius) var(--radius);
+    font-weight: 560;
+    transition: top 120ms ease;
+}
+
+.skip-link:focus {
+    top: 0;
+    text-decoration: none;
+}
+
+/* The main region is focusable only as a skip-link target, so it must not draw
+   a focus ring when jumped to. */
+#main-content:focus {
+    outline: none;
+}
+
+/* Respect a reduced-motion preference: transitions are decoration here, and
+   the drag-and-drop board is the one place motion is meaningful. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Touch targets: keep small controls tappable on a phone. */
+@media (pointer: coarse) {
+    .btn-sm,
+    .checklist-box,
+    .tag-remove {
+        min-height: 36px;
+        min-width: 36px;
+    }
+}
+
+/* Header on small screens: let the navigation wrap under the brand rather than
+   overflow, and drop the header's fixed height so it can grow. */
+@media (max-width: 620px) {
+    .app-header {
+        position: static;
+        height: auto;
+    }
+
+    .app-header > .container {
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        padding-block: var(--space-3);
+    }
+
+    .app-nav {
+        order: 3;
+        width: 100%;
+        margin-left: 0;
+        gap: var(--space-1);
+    }
+
+    .app-header-actions {
+        gap: var(--space-2);
+    }
+
+    .page-header-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .toolbar .btn {
+        flex: 1;
+    }
+}
+
+/* Long words and pasted URLs must not push a card wider than its column. */
+.list-item-title,
+.board-card-title,
+.activity-body {
+    overflow-wrap: anywhere;
+}
+
+/* Tables and wide blocks scroll inside themselves rather than the page. */
+.scroll-x {
+    overflow-x: auto;
 }

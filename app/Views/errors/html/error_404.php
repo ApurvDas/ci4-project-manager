@@ -1,84 +1,55 @@
+<?php
+/**
+ * Page-not-found screen.
+ *
+ * Deliberately vague: this is also what a signed-in user sees when they ask for
+ * a project or task they are not a member of, so it must not hint at whether
+ * the thing exists.
+ *
+ * Standalone rather than extending the app layout, because an error can happen
+ * before or outside the normal request flow.
+ */
+$message = $message ?? '';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title><?= lang('Errors.pageNotFound') ?></title>
-
-    <style>
-        div.logo {
-            height: 200px;
-            width: 155px;
-            display: inline-block;
-            opacity: 0.08;
-            position: absolute;
-            top: 2rem;
-            left: 50%;
-            margin-left: -73px;
-        }
-        body {
-            height: 100%;
-            background: #fafafa;
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-            color: #777;
-            font-weight: 300;
-        }
-        h1 {
-            font-weight: lighter;
-            letter-spacing: normal;
-            font-size: 3rem;
-            margin-top: 0;
-            margin-bottom: 0;
-            color: #222;
-        }
-        .wrap {
-            max-width: 1024px;
-            margin: 5rem auto;
-            padding: 2rem;
-            background: #fff;
-            text-align: center;
-            border: 1px solid #efefef;
-            border-radius: 0.5rem;
-            position: relative;
-        }
-        pre {
-            white-space: normal;
-            margin-top: 1.5rem;
-        }
-        code {
-            background: #fafafa;
-            border: 1px solid #efefef;
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            display: block;
-        }
-        p {
-            margin-top: 1.5rem;
-        }
-        .footer {
-            margin-top: 2rem;
-            border-top: 1px solid #efefef;
-            padding: 1em 2em 0 2em;
-            font-size: 85%;
-            color: #999;
-        }
-        a:active,
-        a:link,
-        a:visited {
-            color: #dd4814;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Page not found · Project Manager</title>
+    <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>">
 </head>
 <body>
-    <div class="wrap">
-        <h1>404</h1>
+    <div class="auth-shell">
+        <div class="auth-brand">
+            <a class="brand" href="<?= base_url('/') ?>">
+                <span class="brand-mark" aria-hidden="true">PM</span>
+                <span>Project Manager</span>
+            </a>
+        </div>
 
-        <p>
-            <?php if (ENVIRONMENT !== 'production') : ?>
-                <?= nl2br(esc($message)) ?>
-            <?php else : ?>
-                <?= lang('Errors.sorryCannotFind') ?>
-            <?php endif; ?>
-        </p>
+        <main class="auth-body">
+            <div class="auth-card">
+                <div class="card-body">
+                    <div class="auth-header">
+                        <h1>We can't find that page</h1>
+                        <p>
+                            The link may be wrong, the item may have been deleted,
+                            or you may not have access to it.
+                        </p>
+                    </div>
+
+                    <div class="row mt-5">
+                        <a class="btn btn-primary" href="<?= base_url('dashboard') ?>">Go to dashboard</a>
+                        <a class="btn btn-secondary" href="<?= base_url('projects') ?>">Your projects</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="auth-footer">
+            &copy; <?= date('Y') ?> Project Manager
+        </footer>
     </div>
 </body>
 </html>

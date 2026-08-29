@@ -19,6 +19,9 @@ $current     = static fn (string $path): string => url_is($path) ? 'page' : 'fal
     <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>">
 </head>
 <body>
+    <?php /* First tab stop: lets a keyboard user jump past the navigation. */ ?>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
     <header class="app-header">
         <div class="container">
             <a class="brand" href="<?= base_url('/') ?>">
@@ -49,9 +52,13 @@ $current     = static fn (string $path): string => url_is($path) ? 'page' : 'fal
         </div>
     </header>
 
-    <main class="app-main">
+    <main class="app-main" id="main-content" tabindex="-1">
         <div class="container">
-            <?= $this->include('partials/alerts') ?>
+            <?php /* Announced to screen readers when a flash message appears
+                     after a redirect, without stealing focus. */ ?>
+            <div aria-live="polite" aria-atomic="true">
+                <?= $this->include('partials/alerts') ?>
+            </div>
             <?= $this->renderSection('content') ?>
         </div>
     </main>
