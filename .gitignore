@@ -132,3 +132,10 @@ _modules/*
 # contents are excluded rather than the directory.
 /fonts/*
 !/fonts/build.py
+
+# Node tooling for the Playwright end-to-end tests
+/node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

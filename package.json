@@ -1,0 +1,21 @@
+{
+  "name": "project-manager-e2e",
+  "version": "1.0.0",
+  "description": "End-to-end tests for the Project Manager application.",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "serve": "php -S localhost:8123 -t public vendor/codeigniter4/framework/system/rewrite.php",
+    "seed": "php spark db:seed DevelopmentSeeder",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "e2e:report": "playwright show-report"
+  },
+  "type": "commonjs",
+  "private": true,
+  "devDependencies": {
+    "@playwright/test": "^1.62.1"
+  }
+}

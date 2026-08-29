@@ -23,6 +23,9 @@
     <testsuites>
         <testsuite name="App">
             <directory>./tests</directory>
+            <!-- Playwright specs live here; they are JavaScript, run by
+                 `npm run e2e`, and are not PHPUnit's to discover. -->
+            <exclude>./tests/e2e</exclude>
         </testsuite>
     </testsuites>
 
