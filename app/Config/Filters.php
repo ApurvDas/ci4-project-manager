@@ -73,7 +73,10 @@ class Filters extends BaseFilters
     public array $globals = [
         'before' => [
             // 'honeypot',
-            // 'csrf',
+            // Every state-changing POST in this application carries a token via
+            // csrf_field(); without this filter those tokens would be emitted
+            // but never verified.
+            'csrf',
             // 'invalidchars',
         ],
         'after' => [

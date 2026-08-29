@@ -101,6 +101,30 @@ class ProjectMemberModel extends Model
     }
 
     /**
+     * Active users who are not yet in the project, for the "add member" picker.
+     *
+     * @return list<array{id: int, username: string}>
+     */
+    public function candidatesFor(int $projectId): array
+    {
+        $existing = $this->userIdsFor($projectId);
+
+        $builder = $this->db->table('users')
+            ->select('id, username')
+            ->where('deleted_at', null)
+            ->orderBy('username', 'ASC');
+
+        if ($existing !== []) {
+            $builder->whereNotIn('id', $existing);
+        }
+
+        return array_map(
+            static fn (array $row): array => ['id' => (int) $row['id'], 'username' => $row['username']],
+            $builder->get()->getResultArray(),
+        );
+    }
+
+    /**
      * @return list<int>
      */
     public function userIdsFor(int $projectId): array

@@ -29,6 +29,6 @@
         </footer>
     </div>
 
-    <script src="<?= base_url('assets/js/auth.js') ?>" defer></script>
+    <script src="<?= base_url('assets/js/forms.js') ?>" defer></script>
 </body>
 </html>

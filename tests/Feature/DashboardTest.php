@@ -4,35 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use CodeIgniter\Shield\Models\UserModel;
-use CodeIgniter\Shield\Test\AuthenticationTesting;
-use CodeIgniter\Test\FeatureTestTrait;
-use Tests\Support\ModelTestCase;
+use Tests\Support\FeatureTestCase;
 
 /**
  * @internal
  */
-final class DashboardTest extends ModelTestCase
+final class DashboardTest extends FeatureTestCase
 {
-    use AuthenticationTesting;
-    use FeatureTestTrait;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        // actingAs() writes an authenticated session, and PHPUnit keeps
-        // $_SESSION alive between tests in the same process. Without this,
-        // a "guest" test that happens to run after a signed-in one is still
-        // authenticated.
-        auth()->logout();
-    }
-
-    private function signIn(string $username): static
-    {
-        return $this->actingAs(model(UserModel::class)->findById($this->userId($username)));
-    }
-
     public function testGuestIsSentToTheLoginPage(): void
     {
         $result = $this->get('dashboard');

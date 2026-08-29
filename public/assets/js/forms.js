@@ -1,6 +1,6 @@
 /**
- * Authentication form behaviour: password visibility, inline validation and a
- * submit loading state.
+ * Shared form behaviour: password visibility, inline validation and a submit
+ * loading state. Applies to any form marked with `data-validated`.
  *
  * This is a convenience layer only. Every rule enforced here is also enforced
  * server-side by Shield and by the model validation rules — nothing may rely on
@@ -67,6 +67,16 @@
 
             return password && password.value !== value
                 ? 'The two passwords do not match.'
+                : null;
+        },
+
+        projectName: function (value) {
+            if (value === '') {
+                return 'Give the project a name.';
+            }
+
+            return value.length < 3
+                ? 'Project names must be at least 3 characters long.'
                 : null;
         },
 

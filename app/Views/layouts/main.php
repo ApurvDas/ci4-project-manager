@@ -29,6 +29,7 @@ $current     = static fn (string $path): string => url_is($path) ? 'page' : 'fal
             <?php if ($currentUser !== null) : ?>
                 <nav class="app-nav" aria-label="Main">
                     <a href="<?= base_url('dashboard') ?>" aria-current="<?= $current('dashboard') ?>">Dashboard</a>
+                    <a href="<?= base_url('projects') ?>" aria-current="<?= $current('projects*') ?>">Projects</a>
                 </nav>
             <?php endif ?>
 
@@ -59,5 +60,7 @@ $current     = static fn (string $path): string => url_is($path) ? 'page' : 'fal
             &copy; <?= date('Y') ?> Project Manager
         </div>
     </footer>
+
+    <script src="<?= base_url('assets/js/forms.js') ?>" defer></script>
 </body>
 </html>
