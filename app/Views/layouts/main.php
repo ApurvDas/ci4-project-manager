@@ -16,6 +16,20 @@ $current     = static fn (string $path): string => url_is($path) ? 'page' : 'fal
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= $this->renderSection('title') ?> · Project Manager</title>
+
+    <?php /* Preload the fonts that render above the fold, so the single-threaded
+             dev server starts them in parallel with the stylesheet rather than
+             only discovering them after the CSS is parsed. The rarer weights
+             (body 500, Terminess) are left to load on demand. crossorigin is
+             required: fonts are always fetched in CORS mode, even same-origin,
+             and without it the preload would not be reused. */ ?>
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+          href="<?= versioned_asset('assets/fonts/source-code-pro-400.woff2') ?>">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+          href="<?= versioned_asset('assets/fonts/source-code-pro-600.woff2') ?>">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+          href="<?= versioned_asset('assets/fonts/iosevka-term-slab-700.woff2') ?>">
+
     <link rel="stylesheet" href="<?= versioned_asset('assets/css/app.css') ?>">
 </head>
 <body>

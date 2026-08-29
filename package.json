@@ -7,7 +7,7 @@
     "test": "tests"
   },
   "scripts": {
-    "serve": "php -S localhost:8123 -t public vendor/codeigniter4/framework/system/rewrite.php",
+    "serve": "php -S localhost:8123 -t public public/dev-router.php",
     "seed": "php spark db:seed DevelopmentSeeder",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",

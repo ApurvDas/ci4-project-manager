@@ -1,6 +1,11 @@
 // @ts-check
 const { defineConfig, devices } = require('@playwright/test');
 
+// Configurable because PHP's built-in server on this machine wedges on a port
+// that has been bound and killed repeatedly. If a run hangs, retry on a fresh
+// one: PORT=8140 npm run e2e.
+const PORT = process.env.PORT || '8123';
+
 /**
  * End-to-end tests.
  *
@@ -36,7 +41,7 @@ module.exports = defineConfig({
   globalSetup: require.resolve('./tests/e2e/global-setup'),
 
   use: {
-    baseURL: 'http://localhost:8123',
+    baseURL: `http://localhost:${PORT}`,
 
     // Artefacts only for failures: a trace of every passing test is noise, but
     // a trace of the one that failed is the whole debugging session.
@@ -58,8 +63,10 @@ module.exports = defineConfig({
     // server accepts connections and never answers. This is the equivalent.
     // Port 8123 rather than 8080 because a server bound to 8080 on this machine
     // hangs reproducibly — see docs/deployment.md.
-    command: 'php -S localhost:8123 -t public vendor/codeigniter4/framework/system/rewrite.php',
-    url: 'http://localhost:8123/login',
+    // dev-router.php is CodeIgniter's rewrite plus a far-future cache header
+    // for /assets/, so repeat navigation does not re-fetch the fonts.
+    command: `php -S localhost:${PORT} -t public public/dev-router.php`,
+    url: `http://localhost:${PORT}/login`,
     reuseExistingServer: !process.env.CI,
     timeout: 60 * 1000,
   },

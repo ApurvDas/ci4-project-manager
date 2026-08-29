@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex">
     <title><?= $this->renderSection('title') ?> · Project Manager</title>
+
+    <?php /* Preload the fonts used above the fold — see layouts/main.php. */ ?>
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+          href="<?= versioned_asset('assets/fonts/source-code-pro-400.woff2') ?>">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+          href="<?= versioned_asset('assets/fonts/source-code-pro-600.woff2') ?>">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+          href="<?= versioned_asset('assets/fonts/iosevka-term-slab-700.woff2') ?>">
+
     <link rel="stylesheet" href="<?= versioned_asset('assets/css/app.css') ?>">
 </head>
 <body>

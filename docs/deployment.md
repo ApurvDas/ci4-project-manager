@@ -38,14 +38,28 @@ understand, so the server starts, accepts connections and then never answers
 them. Run the equivalent directly instead:
 
 ```bash
-php -S localhost:8123 -t public vendor/codeigniter4/framework/system/rewrite.php
+npm run serve
 ```
+
+which is:
+
+```bash
+php -S localhost:8123 -t public public/dev-router.php
+```
+
+`public/dev-router.php` is CodeIgniter's own rewrite logic plus a far-future
+cache header for anything under `/assets/`, so clicking between pages does not
+re-request the stylesheet and fonts. It is a development convenience only;
+production gets the same caching from `public/.htaccess`.
 
 Port 8123 rather than 8080 is deliberate. On this machine a server bound to
 8080 accepts connections and never responds — reproducibly, with the identical
 command that serves a full page in about half a second on another port.
-Something outside this project is holding 8080; if you find and clear it, move
-`app.baseURL` in `.env` back.
+Separately, the built-in server can wedge on a port that has been bound and
+killed many times, accepting connections over IPv6 (`::1`) and closing them
+without answering. If a server or the Playwright suite hangs, move to a fresh
+port: change `app.baseURL` and serve on the new port, or run the tests with
+`PORT=8140 npm run e2e`.
 
 `app.baseURL` must match whatever host and port you serve on, or every
 generated link will point somewhere the server is not listening.
