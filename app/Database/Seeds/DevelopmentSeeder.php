@@ -65,7 +65,8 @@ class DevelopmentSeeder extends Seeder
 
     private function report(): void
     {
-        if (! is_cli()) {
+        // $silent is set by the test suite, which has no use for this summary.
+        if ($this->silent || ! is_cli()) {
             return;
         }
 

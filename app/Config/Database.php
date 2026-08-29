@@ -163,14 +163,17 @@ class Database extends Config
      * @var array<string, mixed>
      */
     public array $tests = [
-        'DSN'         => '',
-        'hostname'    => '127.0.0.1',
-        'username'    => '',
-        'password'    => '',
-        'database'    => ':memory:',
-        'DBDriver'    => 'SQLite3',
-        'DBPrefix'    => 'db_',  // Needed to ensure we're working correctly with prefixes live. DO NOT REMOVE FOR CI DEVS
-        'pConnect'    => false,
+        'DSN'      => '',
+        'hostname' => '127.0.0.1',
+        'username' => 'root',
+        'password' => '',
+        // A throwaway database, rebuilt by the test suite on every run. It must
+        // be MySQL rather than the SQLite default that ships with CodeIgniter,
+        // because the schema relies on MySQL ENUM and JSON column types.
+        'database' => 'project_manager_test',
+        'DBDriver' => 'MySQLi',
+        'DBPrefix' => '',
+        'pConnect' => false,
         'DBDebug'     => true,
         'charset'     => 'utf8',
         'DBCollat'    => '',
