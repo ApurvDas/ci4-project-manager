@@ -89,29 +89,39 @@
 /* 1. Design tokens ========================================================= */
 
 :root {
-    --bg: #f6f7f9;
+    /* Achromatic base. Colour is reserved for meaning — a status, a warning, a
+       destructive action — so anything coloured on screen is telling you
+       something rather than decorating. */
+    --bg: #fafafa;
     --surface: #ffffff;
-    --surface-2: #f1f3f6;
-    --border: #e2e5ea;
-    --border-strong: #cbd1da;
+    --surface-2: #f2f2f2;
+    --border: #eaeaea;
+    --border-strong: #d4d4d4;
 
-    --text: #171a20;
-    --text-muted: #626b7a;
-    --text-subtle: #8b93a1;
+    --text: #000000;
+    --text-muted: #666666;
+    --text-subtle: #8f8f8f;
 
-    --primary: #4f46e5;
-    --primary-hover: #4338ca;
-    --primary-soft: #eef2ff;
+    /* The accent is black, not a brand hue: primary buttons, the brand mark and
+       progress fills read as structure rather than decoration. */
+    --primary: #000000;
+    --primary-hover: #383838;
+    --primary-soft: #f2f2f2;
     --on-primary: #ffffff;
 
-    --danger: #dc2626;
-    --danger-soft: #fef2f2;
-    --success: #16a34a;
-    --success-soft: #f0fdf4;
-    --warning: #d97706;
-    --warning-soft: #fffbeb;
-    --info: #0284c7;
-    --info-soft: #f0f9ff;
+    /* Links keep a blue, because an achromatic link inside body text is
+       indistinguishable from the text around it. */
+    --link: #0070f3;
+    --focus: #0070f3;
+
+    --danger: #e5484d;
+    --danger-soft: #fff0f0;
+    --success: #45a557;
+    --success-soft: #f1fdf4;
+    --warning: #f5a623;
+    --warning-soft: #fff9ed;
+    --info: #0070f3;
+    --info-soft: #f0f7ff;
 
     --radius-sm: 6px;
     --radius: 10px;
@@ -141,29 +151,35 @@
 
 @media (prefers-color-scheme: dark) {
     :root {
-        --bg: #0f1116;
-        --surface: #171a21;
-        --surface-2: #1f2430;
-        --border: #2a3040;
-        --border-strong: #3a4256;
+        /* True black ground, with surfaces stepping up in near-neutral greys.
+           The inversion is deliberate: in dark mode the accent becomes white,
+           so a primary button stays the highest-contrast thing on screen. */
+        --bg: #000000;
+        --surface: #0a0a0a;
+        --surface-2: #171717;
+        --border: #262626;
+        --border-strong: #404040;
 
-        --text: #e8eaf0;
-        --text-muted: #9aa3b4;
-        --text-subtle: #6f7889;
+        --text: #ededed;
+        --text-muted: #a1a1a1;
+        --text-subtle: #737373;
 
-        --primary: #7c74f0;
-        --primary-hover: #8f88f4;
-        --primary-soft: #1e1f3d;
-        --on-primary: #0f1116;
+        --primary: #ffffff;
+        --primary-hover: #cccccc;
+        --primary-soft: #1a1a1a;
+        --on-primary: #000000;
 
-        --danger: #f87171;
-        --danger-soft: #2a1618;
-        --success: #4ade80;
-        --success-soft: #10241a;
-        --warning: #fbbf24;
-        --warning-soft: #2a2010;
-        --info: #38bdf8;
-        --info-soft: #10222e;
+        --link: #3291ff;
+        --focus: #3291ff;
+
+        --danger: #ff6369;
+        --danger-soft: #2a1215;
+        --success: #62c073;
+        --success-soft: #0f2417;
+        --warning: #f7b955;
+        --warning-soft: #2a1f0d;
+        --info: #3291ff;
+        --info-soft: #0d1f33;
 
         --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
         --shadow: 0 4px 16px rgb(0 0 0 / 45%);
@@ -221,7 +237,7 @@ h2 { font-size: 1.25rem; }
 h3 { font-size: 1.05rem; }
 
 a {
-    color: var(--primary);
+    color: var(--link);
     text-decoration: none;
 }
 
@@ -240,9 +256,22 @@ button, input, select, textarea {
 }
 
 :focus-visible {
-    outline: 2px solid var(--primary);
-    outline-offset: 2px;
+    /* Two rings: an inner one in the surface colour holding the outer ring
+       clear of the control, so focus is legible against a card, a coloured
+       button or the page background alike. */
+    outline: none;
+    box-shadow:
+        0 0 0 2px var(--surface),
+        0 0 0 4px var(--focus);
     border-radius: var(--radius-sm);
+}
+
+/* Windows high-contrast mode ignores box-shadow, so keep a real outline there. */
+@media (forced-colors: active) {
+    :focus-visible {
+        outline: 2px solid Highlight;
+        outline-offset: 2px;
+    }
 }
 
 /* 3. Layout primitives ===================================================== */

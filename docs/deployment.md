@@ -30,6 +30,26 @@ Treat that as a release blocker rather than a detail.
 
 ---
 
+## Running it locally
+
+`php spark serve` does not work on this Windows machine. CodeIgniter builds the
+command with `escapeshellarg()`, which quotes arguments in a form `cmd` does not
+understand, so the server starts, accepts connections and then never answers
+them. Run the equivalent directly instead:
+
+```bash
+php -S localhost:8123 -t public vendor/codeigniter4/framework/system/rewrite.php
+```
+
+Port 8123 rather than 8080 is deliberate. On this machine a server bound to
+8080 accepts connections and never responds — reproducibly, with the identical
+command that serves a full page in about half a second on another port.
+Something outside this project is holding 8080; if you find and clear it, move
+`app.baseURL` in `.env` back.
+
+`app.baseURL` must match whatever host and port you serve on, or every
+generated link will point somewhere the server is not listening.
+
 ## 1. Server requirements
 
 - PHP 8.3 with `intl`, `mbstring`, `mysqli`, `json`, `curl`
