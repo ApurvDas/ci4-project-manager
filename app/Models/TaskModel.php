@@ -129,6 +129,26 @@ class TaskModel extends Model
     }
 
     /**
+     * A user's open work, soonest deadline first.
+     *
+     * Tasks without a due date sort last rather than first, so the list reads
+     * as a schedule instead of burying the urgent items.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function openAssignedTo(int $userId, int $limit = 8): array
+    {
+        return $this->select('tasks.*, projects.name AS project_name')
+            ->join('task_assignees', 'task_assignees.task_id = tasks.id')
+            ->join('projects', 'projects.id = tasks.project_id')
+            ->where('task_assignees.user_id', $userId)
+            ->where('projects.deleted_at', null)
+            ->where('tasks.status !=', self::STATUS_COMPLETED)
+            ->orderBy('tasks.due_date IS NULL ASC, tasks.due_date ASC', '', false)
+            ->findAll($limit);
+    }
+
+    /**
      * Task counts for the dashboard, all scoped to what this user is assigned.
      *
      * @return array<string, int>

@@ -28,7 +28,7 @@ $current     = static fn (string $path): string => url_is($path) ? 'page' : 'fal
 
             <?php if ($currentUser !== null) : ?>
                 <nav class="app-nav" aria-label="Main">
-                    <a href="<?= base_url('/') ?>" aria-current="<?= $current('') ?>">Dashboard</a>
+                    <a href="<?= base_url('dashboard') ?>" aria-current="<?= $current('dashboard') ?>">Dashboard</a>
                 </nav>
             <?php endif ?>
 

@@ -118,6 +118,64 @@ final class TaskModelTest extends ModelTestCase
         $this->assertCount(2, $this->tasks->assignedTo($this->userId('developer'), 2));
     }
 
+    public function testOpenAssignedTasksExcludeCompletedWork(): void
+    {
+        $titles = array_column($this->tasks->openAssignedTo($this->userId('developer')), 'title');
+
+        $this->assertContains('Build authentication', $titles);
+        // Both wiki tasks are assigned to developer but already completed.
+        $this->assertNotContains('Migrate runbooks', $titles);
+        $this->assertNotContains('Write contribution guide', $titles);
+    }
+
+    public function testOpenAssignedTasksAreOrderedByDueDate(): void
+    {
+        $titles = array_column($this->tasks->openAssignedTo($this->userId('tester')), 'title');
+
+        $this->assertSame([
+            'Accessibility audit',      // overdue by a day
+            'Migrate legacy content',   // due today
+            'Build authentication',     // due in two days
+            'Implement push notifications',
+        ], $titles);
+    }
+
+    public function testOpenAssignedTasksIncludeTheProjectName(): void
+    {
+        $task = $this->tasks->openAssignedTo($this->userId('tester'))[0];
+
+        $this->assertSame('Website Redesign', $task['project_name']);
+    }
+
+    public function testUndatedTasksSortAfterDatedOnes(): void
+    {
+        $userId = $this->userId('tester');
+
+        $taskId = $this->tasks->insert([
+            'project_id' => $this->projectId('Website Redesign'),
+            'created_by' => $this->userId('admin'),
+            'title'      => 'Someday maybe',
+            'status'     => 'todo',
+            'priority'   => 'low',
+            'due_date'   => null,
+        ], true);
+
+        $this->db->table('task_assignees')->insert([
+            'task_id' => $taskId,
+            'user_id' => $userId,
+        ]);
+
+        $titles = array_column($this->tasks->openAssignedTo($userId), 'title');
+
+        // A task with no deadline must not jump ahead of dated work.
+        $this->assertSame('Someday maybe', end($titles));
+    }
+
+    public function testOpenAssignedTasksRespectTheLimit(): void
+    {
+        $this->assertCount(2, $this->tasks->openAssignedTo($this->userId('tester'), 2));
+    }
+
     public function testStatusCountsForAProject(): void
     {
         $counts = $this->tasks->statusCountsFor($this->projectId('Website Redesign'));

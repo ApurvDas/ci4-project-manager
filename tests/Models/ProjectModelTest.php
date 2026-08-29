@@ -106,6 +106,48 @@ final class ProjectModelTest extends ModelTestCase
         $this->assertSame(0, $this->projects->progressFor((int) $projectId));
     }
 
+    public function testProgressForManyReturnsOneEntryPerProject(): void
+    {
+        $websiteId = $this->projectId('Website Redesign');
+        $wikiId    = $this->projectId('Internal Wiki');
+
+        $progress = $this->projects->progressForMany([$websiteId, $wikiId]);
+
+        $this->assertSame(17, $progress[$websiteId]);
+        $this->assertSame(100, $progress[$wikiId]);
+    }
+
+    public function testProgressForManyIncludesProjectsWithNoTasks(): void
+    {
+        $emptyId = (int) $this->projects->insert([
+            'owner_id' => $this->userId('admin'),
+            'name'     => 'Untouched Project',
+            'status'   => 'planning',
+            'priority' => 'low',
+        ], true);
+
+        $progress = $this->projects->progressForMany([$emptyId]);
+
+        // A project with no tasks still needs a key, or the view has to guard.
+        $this->assertArrayHasKey($emptyId, $progress);
+        $this->assertSame(0, $progress[$emptyId]);
+    }
+
+    public function testProgressForManyWithNoProjects(): void
+    {
+        $this->assertSame([], $this->projects->progressForMany([]));
+    }
+
+    public function testProgressForManyMatchesTheSingleProjectCalculation(): void
+    {
+        $projectId = $this->projectId('Website Redesign');
+
+        $this->assertSame(
+            $this->projects->progressFor($projectId),
+            $this->projects->progressForMany([$projectId])[$projectId],
+        );
+    }
+
     public function testInvalidStatusIsRejected(): void
     {
         $result = $this->projects->insert([

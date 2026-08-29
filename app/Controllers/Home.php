@@ -4,19 +4,22 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use CodeIgniter\HTTP\RedirectResponse;
+
 class Home extends BaseController
 {
     /**
-     * The application landing page.
+     * The public landing page.
      *
-     * Public, but renders differently depending on the authentication state:
-     * visitors get an introduction and the sign-in routes, signed-in users get
-     * their entry point into the application.
+     * A signed-in user has no use for the marketing copy, so they are sent to
+     * their dashboard instead.
      */
-    public function index(): string
+    public function index(): RedirectResponse|string
     {
-        return view('home', [
-            'currentUser' => auth()->user(),
-        ]);
+        if (auth()->loggedIn()) {
+            return redirect()->to('dashboard');
+        }
+
+        return view('home');
     }
 }

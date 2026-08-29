@@ -116,6 +116,46 @@ class ProjectModel extends Model
     }
 
     /**
+     * Completion percentage for several projects at once, keyed by project id.
+     *
+     * One grouped query rather than one per row, so a dashboard listing many
+     * projects stays a fixed number of queries.
+     *
+     * @param list<int> $projectIds
+     *
+     * @return array<int, int>
+     */
+    public function progressForMany(array $projectIds): array
+    {
+        if ($projectIds === []) {
+            return [];
+        }
+
+        // Projects with no tasks at all produce no row below, so start every
+        // requested id at zero.
+        $progress = array_fill_keys(array_map('intval', $projectIds), 0);
+
+        $rows = $this->db->table('tasks')
+            ->select('project_id, COUNT(*) AS total')
+            ->select("SUM(status = 'completed') AS completed", false)
+            ->whereIn('project_id', $projectIds)
+            ->where('deleted_at', null)
+            ->groupBy('project_id')
+            ->get()
+            ->getResultArray();
+
+        foreach ($rows as $row) {
+            $total = (int) $row['total'];
+
+            $progress[(int) $row['project_id']] = $total === 0
+                ? 0
+                : (int) round(((int) $row['completed'] / $total) * 100);
+        }
+
+        return $progress;
+    }
+
+    /**
      * Completion percentage derived from the project's tasks.
      */
     public function progressFor(int $projectId): int
