@@ -43,6 +43,9 @@ $routes->group('', ['filter' => 'session'], static function (RouteCollection $ro
         $routes->post('(:num)/tags', 'Tags::create/$1', ['as' => 'tags.store']);
         $routes->post('(:num)/tags/(:num)/delete', 'Tags::destroy/$1/$2', ['as' => 'tags.delete']);
 
+        // Activity history
+        $routes->get('(:num)/activity', 'Activity::index/$1', ['as' => 'activity.index']);
+
         // Kanban board
         $routes->get('(:num)/board', 'Board::show/$1', ['as' => 'board.show']);
         $routes->post('(:num)/board/(:num)/move', 'Board::move/$1/$2', ['as' => 'board.move']);

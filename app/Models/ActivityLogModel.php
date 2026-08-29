@@ -130,6 +130,60 @@ class ActivityLogModel extends Model
     }
 
     /**
+     * Configure the query for a project's full history, optionally narrowed.
+     *
+     * Returns the model so the caller can paginate() it — the audit trail grows
+     * without limit, so it must never be loaded whole.
+     *
+     * @param array{entity_type?: string, action?: string, user_id?: int|string} $filters
+     */
+    public function scopeForProject(int $projectId, array $filters = []): self
+    {
+        $this->select('activity_logs.*, users.username')
+            ->join('users', 'users.id = activity_logs.user_id', 'left')
+            ->where('activity_logs.project_id', $projectId);
+
+        if (! empty($filters['entity_type'])) {
+            $this->where('activity_logs.entity_type', $filters['entity_type']);
+        }
+
+        if (! empty($filters['action'])) {
+            $this->where('activity_logs.action', $filters['action']);
+        }
+
+        if (! empty($filters['user_id'])) {
+            $this->where('activity_logs.user_id', (int) $filters['user_id']);
+        }
+
+        return $this->orderBy('activity_logs.created_at', 'DESC')
+            ->orderBy('activity_logs.id', 'DESC');
+    }
+
+    /**
+     * The distinct values present in a project's history, for filter menus.
+     * Built from the data rather than the constants, so a menu never offers a
+     * choice that would return nothing.
+     *
+     * @return array{entity_types: list<string>, actions: list<string>}
+     */
+    public function filterOptionsFor(int $projectId): array
+    {
+        $rows = $this->db->table('activity_logs')
+            ->select('DISTINCT entity_type, action', false)
+            ->where('project_id', $projectId)
+            ->get()
+            ->getResultArray();
+
+        $entityTypes = array_values(array_unique(array_column($rows, 'entity_type')));
+        $actions     = array_values(array_unique(array_column($rows, 'action')));
+
+        sort($entityTypes);
+        sort($actions);
+
+        return ['entity_types' => $entityTypes, 'actions' => $actions];
+    }
+
+    /**
      * The history of a single entity, for example one task.
      *
      * @return list<array<string, mixed>>

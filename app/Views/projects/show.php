@@ -164,6 +164,7 @@ $assignableRoles = $canAdmin
         <section class="card">
             <div class="panel-head">
                 <h2>Recent activity</h2>
+                <a class="btn btn-secondary btn-sm" href="<?= url_to('activity.index', $projectId) ?>">Full history</a>
             </div>
 
             <?php if ($activity === []) : ?>
