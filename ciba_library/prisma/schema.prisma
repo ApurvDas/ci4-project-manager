@@ -1,0 +1,221 @@
+// Ciba Library schema. Mirrors src/lib/types.ts so the Phase 4 data layer maps
+// rows -> domain types with no page changes. The User/Account/Session/
+// VerificationToken shapes match @auth/prisma-adapter exactly — deviating
+// breaks the adapter.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Auth.js (NextAuth) models
+// ---------------------------------------------------------------------------
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  username      String    @unique
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  bio           String?
+  passwordHash  String? // null for OAuth-only accounts
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  recipes       Recipe[]
+  ratings       Rating[]
+  comments      Comment[]
+  shoppingItems ShoppingListItem[]
+  following     Follow[]           @relation("follower")
+  followers     Follow[]           @relation("following")
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+// ---------------------------------------------------------------------------
+// Domain models
+// ---------------------------------------------------------------------------
+
+enum TagGroup {
+  DIET
+  MEAL_TYPE
+  CUISINE
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+model Category {
+  id      String   @id @default(cuid())
+  name    String
+  slug    String   @unique
+  recipes Recipe[]
+}
+
+model Tag {
+  id      String      @id @default(cuid())
+  name    String
+  slug    String      @unique
+  group   TagGroup
+  recipes RecipeTag[]
+}
+
+model Recipe {
+  id           String     @id @default(cuid())
+  slug         String     @unique
+  title        String
+  description  String
+  authorId     String
+  servings     Int
+  prepTimeMins Int
+  cookTimeMins Int
+  difficulty   Difficulty
+  imageUrl     String?
+  imageHue     Int
+  categoryId   String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  author        User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  category      Category           @relation(fields: [categoryId], references: [id])
+  ingredients   Ingredient[]
+  steps         Step[]
+  tags          RecipeTag[]
+  ratings       Rating[]
+  comments      Comment[]
+  shoppingItems ShoppingListItem[]
+
+  @@index([authorId])
+  @@index([categoryId])
+}
+
+model Ingredient {
+  id       String  @id @default(cuid())
+  recipeId String
+  name     String
+  quantity Float
+  unit     String?
+  notes    String?
+  order    Int     @default(0)
+
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@index([recipeId])
+}
+
+model Step {
+  id          String @id @default(cuid())
+  recipeId    String
+  stepNumber  Int
+  instruction String
+
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@index([recipeId])
+}
+
+model RecipeTag {
+  recipeId String
+  tagId    String
+
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([recipeId, tagId])
+  @@index([tagId])
+}
+
+model Rating {
+  id       String @id @default(cuid())
+  recipeId String
+  userId   String
+  value    Int
+
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([recipeId, userId])
+  @@index([recipeId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  recipeId  String
+  userId    String
+  body      String
+  createdAt DateTime @default(now())
+
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([recipeId])
+}
+
+model Follow {
+  followerId  String
+  followingId String
+
+  follower  User @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
+  @@index([followingId])
+}
+
+model ShoppingListItem {
+  id       String  @id @default(cuid())
+  userId   String
+  name     String
+  quantity Float
+  unit     String?
+  checked  Boolean @default(false)
+  recipeId String? // optional link back to the source recipe
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe Recipe? @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+}

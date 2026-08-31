@@ -1,0 +1,142 @@
+@import "tailwindcss";
+
+/*
+ * Ciba Library design tokens.
+ * Clean, minimal, neutral surface + a single warm accent so the motion is
+ * what draws the eye. Every value is defined for both themes.
+ */
+
+:root {
+  --background: 30 40% 99%;
+  --foreground: 24 10% 10%;
+  --card: 0 0% 100%;
+  --card-foreground: 24 10% 10%;
+  --muted: 30 12% 95%;
+  --muted-foreground: 24 6% 44%;
+  --border: 30 12% 89%;
+  --input: 30 12% 89%;
+  --ring: 18 82% 52%;
+
+  --primary: 18 82% 52%;
+  --primary-foreground: 30 40% 99%;
+  --secondary: 30 12% 95%;
+  --secondary-foreground: 24 10% 14%;
+  --accent: 18 82% 52%;
+  --accent-foreground: 30 40% 99%;
+
+  --success: 142 60% 40%;
+  --destructive: 0 72% 51%;
+  --star: 40 96% 52%;
+
+  --radius: 0.75rem;
+}
+
+.dark {
+  --background: 24 10% 7%;
+  --foreground: 30 20% 94%;
+  --card: 24 9% 11%;
+  --card-foreground: 30 20% 94%;
+  --muted: 24 8% 16%;
+  --muted-foreground: 30 8% 62%;
+  --border: 24 8% 20%;
+  --input: 24 8% 22%;
+  --ring: 18 84% 58%;
+
+  --primary: 18 84% 58%;
+  --primary-foreground: 24 10% 7%;
+  --secondary: 24 8% 18%;
+  --secondary-foreground: 30 20% 94%;
+  --accent: 18 84% 58%;
+  --accent-foreground: 24 10% 7%;
+
+  --success: 142 52% 52%;
+  --destructive: 0 72% 60%;
+  --star: 40 96% 58%;
+}
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-success: hsl(var(--success));
+  --color-destructive: hsl(var(--destructive));
+  --color-star: hsl(var(--star));
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 0.25rem);
+  --radius-sm: calc(var(--radius) - 0.4rem);
+
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, monospace;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * FOUC / no-JS guard. Elements that animate in start hidden ONLY when JS is
+ * present (the .js class is set on <html> before paint by an inline script).
+ * Without JS, or with reduced motion, they render normally and visible.
+ */
+.js [data-reveal] {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js [data-reveal] {
+    opacity: 1;
+  }
+}
+
+/* Ambient loops stay in CSS — cheaper than a JS scope, no teardown needed. */
+@keyframes ciba-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.ciba-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: hsl(var(--muted));
+}
+
+.ciba-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsl(var(--foreground) / 0.06),
+    transparent
+  );
+  animation: ciba-shimmer 1.4s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ciba-skeleton::after {
+    animation: none;
+  }
+}
