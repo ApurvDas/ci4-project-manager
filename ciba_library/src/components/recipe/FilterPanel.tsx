@@ -216,7 +216,7 @@ function FilterChip({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "rounded-md px-3 py-1.5 text-left text-sm transition-colors",
+        "rounded-md px-3 py-1.5 text-left text-sm transition-[transform,background-color,color] duration-150 ease-snappy motion-safe:active:scale-[0.98]",
         active
           ? "bg-primary/10 font-medium text-primary"
           : "text-muted-foreground hover:bg-muted hover:text-foreground",

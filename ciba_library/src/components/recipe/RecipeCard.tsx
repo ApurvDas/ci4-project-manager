@@ -26,7 +26,7 @@ export function RecipeCard({ recipe, showAuthor, className }: RecipeCardProps) {
           title={recipe.title}
           imageUrl={recipe.imageUrl}
           hue={recipe.imageHue}
-          className="transition-transform duration-500 group-hover:scale-105"
+          className="transition-transform duration-300 ease-snappy motion-safe:group-hover:scale-[1.04]"
         />
         <Badge
           variant="default"
@@ -37,7 +37,7 @@ export function RecipeCard({ recipe, showAuthor, className }: RecipeCardProps) {
       </div>
 
       <div className="flex flex-1 flex-col gap-2 p-4">
-        <h3 className="font-semibold leading-snug tracking-tight group-hover:text-primary">
+        <h3 className="font-display text-lg font-medium leading-snug tracking-tight transition-colors duration-150 ease-snappy group-hover:text-primary">
           {recipe.title}
         </h3>
         <p className="line-clamp-2 flex-1 text-sm text-muted-foreground">

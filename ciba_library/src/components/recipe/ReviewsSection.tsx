@@ -40,7 +40,7 @@ export function ReviewsSection({
     setMyRating(value);
     try {
       await onRate?.(value);
-      toast.success(`Thanks — you rated this ${value} star${value === 1 ? "" : "s"}`);
+      toast.success(`Thanks! You rated this ${value} star${value === 1 ? "" : "s"}`);
     } catch {
       toast.error("Couldn't save your rating.");
     }
@@ -78,7 +78,10 @@ export function ReviewsSection({
       data-recipe={recipeSlug}
       className="space-y-6"
     >
-      <h2 id="reviews-heading" className="text-xl font-semibold tracking-tight">
+      <h2
+        id="reviews-heading"
+        className="font-display text-2xl font-medium tracking-tight"
+      >
         Ratings &amp; comments
       </h2>
 
@@ -136,7 +139,7 @@ export function ReviewsSection({
         </Reveal>
       ) : (
         <p className="text-sm text-muted-foreground">
-          No comments yet — be the first to cook this and report back.
+          No comments yet. Be the first to cook this and report back.
         </p>
       )}
     </section>

@@ -80,6 +80,20 @@
 
   --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-mono), ui-monospace, monospace;
+  --font-display: var(--font-display), var(--font-sans), ui-serif, serif;
+
+  /*
+   * Interaction-craft easings (Emil Kowalski). Additive to Tailwind's defaults
+   * (kept distinct names so `ease-out` etc. still mean the stock curves) and
+   * mirrored as strings in src/lib/motion.ts `cssEases` — one source of truth
+   * for the CSS interaction layer and any JS-driven motion.
+   *   snappy — strong ease-out for enter/exit + press feedback
+   *   fluid  — strong ease-in-out for on-screen movement/morphs
+   *   drawer — iOS-like curve for drawers/sheets
+   */
+  --ease-snappy: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-fluid: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 * {

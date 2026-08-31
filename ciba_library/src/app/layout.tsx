@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Newsreader } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { Providers } from "./providers";
 import { Navbar } from "@/components/layout/Navbar";
@@ -13,6 +14,15 @@ const sans = Inter({
 const mono = JetBrains_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
+});
+
+// Editorial display face — a warm, optical-size serif for magazine-style
+// headlines. Italic is included for same-family in-headline emphasis.
+const display = Newsreader({
+  variable: "--font-display",
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  weight: ["400", "500", "600"],
 });
 
 export const metadata: Metadata = {
@@ -36,13 +46,13 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${sans.variable} ${mono.variable} h-full`}
+      className={`${sans.variable} ${mono.variable} ${display.variable} h-full`}
       suppressHydrationWarning
     >
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: jsClassScript }} />
-      </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
+        <Script id="js-class" strategy="beforeInteractive">
+          {jsClassScript}
+        </Script>
         <Providers>
           <Navbar />
           <main className="flex-1">{children}</main>

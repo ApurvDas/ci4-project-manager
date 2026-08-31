@@ -27,8 +27,8 @@ export function Depth3DDemo() {
                   <Sparkles className="size-3" /> Tilt me
                 </Badge>
                 <p className="text-sm text-muted-foreground">
-                  Move your pointer across the card — it leans into the cursor
-                  and a soft sheen follows.
+                  Move your pointer across the card and it leans into the
+                  cursor, with a soft sheen that follows.
                 </p>
               </CardContent>
             </Card>
@@ -42,7 +42,7 @@ export function Depth3DDemo() {
           className="h-44 w-64"
           front={
             <div className="grid h-full place-items-center rounded-xl border border-border bg-card text-sm text-muted-foreground">
-              Front — hover to flip
+              Front, hover to flip
             </div>
           }
           back={
@@ -84,7 +84,7 @@ export function Depth3DDemo() {
 
       <div>
         <p className="mb-3 text-sm font-medium">
-          WebGL centerpiece — bowl of ramen
+          WebGL centerpiece, bowl of ramen
         </p>
         <HeroRamen className="max-w-[16rem]" />
       </div>

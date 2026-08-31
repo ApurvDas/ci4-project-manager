@@ -34,7 +34,9 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <header className="mb-8">
-        <h1 className="text-3xl font-semibold tracking-tight">Recipes</h1>
+        <h1 className="font-display text-4xl font-medium tracking-tight">
+          Recipes
+        </h1>
         <p className="mt-1 text-muted-foreground">
           Browse the community library and filter to exactly what you feel like
           cooking.

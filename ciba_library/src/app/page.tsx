@@ -35,7 +35,7 @@ function TopPickFront({ recipe }: { recipe: Recipe }) {
         </Badge>
       </div>
       <div className="flex flex-1 flex-col justify-between gap-2 p-4">
-        <h3 className="font-semibold leading-snug tracking-tight">
+        <h3 className="font-display text-lg font-medium leading-snug tracking-tight">
           {recipe.title}
         </h3>
         <p className="text-xs text-muted-foreground">Hover to flip →</p>
@@ -49,7 +49,9 @@ function TopPickBack({ recipe }: { recipe: Recipe }) {
   return (
     <div className="flex h-full flex-col justify-between rounded-xl border border-primary/40 bg-primary p-5 text-primary-foreground">
       <div>
-        <h3 className="text-lg font-semibold leading-snug">{recipe.title}</h3>
+        <h3 className="font-display text-xl font-medium leading-snug">
+          {recipe.title}
+        </h3>
         <dl className="mt-4 space-y-2 text-sm">
           <div className="flex items-center gap-2">
             <Star className="size-4 fill-current" />
@@ -102,7 +104,7 @@ export default async function HomePage() {
           <div data-depth="0.28">
             <SplitTextHeadline
               text="Every recipe, in motion."
-              className="text-5xl font-semibold tracking-tight sm:text-6xl"
+              className="font-display text-5xl font-medium leading-[1.05] tracking-tight sm:text-7xl"
             />
           </div>
           <p
@@ -110,8 +112,7 @@ export default async function HomePage() {
             className="max-w-xl text-lg text-muted-foreground"
           >
             Browse, cook, and share recipes. Scale servings with a tap, build a
-            shopping list, and follow other cooks — all wrapped in animation
-            that actually means something.
+            shopping list, and follow the cooks you love.
           </p>
           <div data-depth="0.12" className="flex flex-wrap gap-3">
             <Button size="lg" asChild>
@@ -141,7 +142,7 @@ export default async function HomePage() {
               key={c.id}
               href={`/recipes?category=${c.slug}`}
               data-reveal
-              className="rounded-full border border-border bg-card px-4 py-1.5 text-sm transition-colors hover:border-primary/50 hover:text-primary"
+              className="rounded-full border border-border bg-card px-4 py-1.5 text-sm transition-[transform,border-color,color] duration-150 ease-snappy hover:border-primary/50 hover:text-primary motion-safe:active:scale-[0.97]"
             >
               {c.name}
             </Link>
@@ -153,12 +154,13 @@ export default async function HomePage() {
       <section className="mx-auto max-w-6xl px-4 py-12">
         <div className="mb-6 flex items-end justify-between">
           <div>
-            <h2 className="flex items-center gap-2 text-2xl font-semibold tracking-tight">
+            <h2 className="flex items-center gap-2 font-display text-3xl font-medium tracking-tight">
               <Flame className="size-5 text-primary" />
               Top picks
             </h2>
             <p className="mt-1 text-muted-foreground">
-              The community&apos;s highest-rated dishes — flip for the details.
+              The community&apos;s highest-rated dishes. Flip any card for the
+              details.
             </p>
           </div>
           <Button variant="ghost" size="sm" asChild>
@@ -189,7 +191,7 @@ export default async function HomePage() {
       <section className="mx-auto max-w-6xl px-4 pb-20 pt-4">
         <div className="mb-6 flex items-end justify-between">
           <div>
-            <h2 className="flex items-center gap-2 text-2xl font-semibold tracking-tight">
+            <h2 className="flex items-center gap-2 font-display text-3xl font-medium tracking-tight">
               <Clock className="size-5 text-primary" />
               Fresh from the kitchen
             </h2>

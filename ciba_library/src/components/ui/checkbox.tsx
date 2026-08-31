@@ -21,7 +21,7 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
         />
         <span
           className={cn(
-            "flex size-5 items-center justify-center rounded border border-input text-transparent transition-colors peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-1 peer-focus-visible:ring-offset-background",
+            "flex size-5 items-center justify-center rounded border border-input text-transparent transition-[transform,color,background-color,border-color] duration-150 ease-snappy motion-safe:peer-active:scale-90 peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-1 peer-focus-visible:ring-offset-background",
             className,
           )}
         >

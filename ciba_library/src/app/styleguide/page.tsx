@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Reveal } from "@/components/motion/Reveal";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { durations, stagger } from "@/lib/motion";
+import { durations, stagger, cssEases } from "@/lib/motion";
 import { HeroDemo } from "./HeroDemo";
 import { ServingsDemo } from "./ServingsDemo";
 import { ChecklistDemo } from "./ChecklistDemo";
@@ -26,7 +26,9 @@ function Section({
   return (
     <section className="border-t border-border py-10">
       <div className="mb-6">
-        <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
+        <h2 className="font-display text-2xl font-medium tracking-tight">
+          {title}
+        </h2>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
           {description}
         </p>
@@ -81,14 +83,52 @@ export default function StyleguidePage() {
       </Section>
 
       <Section
-        title="Animated hero — splitText"
+        title="Editorial type scale"
+        description="Newsreader sets magazine-style display headlines; the sans carries body copy and the mono owns numerals and meta. In-headline emphasis uses the same family's italic, never a second font."
+      >
+        <div className="space-y-4">
+          <p className="font-display text-4xl font-medium leading-[1.1] tracking-tight sm:text-5xl">
+            Every recipe, <em className="italic">in motion</em>.
+          </p>
+          <p className="max-w-2xl text-lg text-muted-foreground">
+            Body copy stays in the sans for readability, with{" "}
+            <span className="font-mono tabular-nums text-foreground">4.8</span>{" "}
+            ratings and{" "}
+            <span className="font-mono tabular-nums text-foreground">35</span>{" "}
+            minutes rendered in the mono numerals used across cards and meta.
+          </p>
+        </div>
+      </Section>
+
+      <Section
+        title="Interaction easings"
+        description="The CSS interaction layer (press, hover, popovers) shares three custom curves with the anime.js tiers, so JS- and CSS-driven motion never drift. Defined once in globals.css and mirrored in lib/motion.ts."
+      >
+        <div className="grid gap-3 sm:grid-cols-3">
+          {Object.entries(cssEases).map(([name, curve]) => (
+            <Card key={name}>
+              <CardContent>
+                <div className="text-sm font-medium capitalize">
+                  ease-{name}
+                </div>
+                <code className="mt-1 block text-xs text-muted-foreground">
+                  {curve}
+                </code>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </Section>
+
+      <Section
+        title="Animated hero, splitText"
         description="The home headline splits into characters and staggers in. The full string stays readable to screen readers."
       >
         <HeroDemo />
       </Section>
 
       <Section
-        title="Servings scaler — number tweening"
+        title="Servings scaler, number tweening"
         description="The flagship interaction. Change servings and every quantity counts to its new value with a downward ripple."
       >
         <div className="max-w-md">
@@ -97,7 +137,7 @@ export default function StyleguidePage() {
       </Section>
 
       <Section
-        title="Shopping list — self-drawing checks"
+        title="Shopping list, self-drawing checks"
         description="Toggling an item draws its checkmark stroke-by-stroke via the SVG drawable."
       >
         <div className="max-w-md">
@@ -114,14 +154,14 @@ export default function StyleguidePage() {
 
       <Section
         title="3D & depth"
-        description="Real depth via anime.js-driven CSS 3D — pointer tilt, card flip, parallax, and a spinning coin — plus one true WebGL centerpiece, a bowl of ramen. All flatten or hold still under reduced motion."
+        description="Real depth via anime.js-driven CSS 3D: pointer tilt, card flip, parallax, and a spinning coin, plus one true WebGL centerpiece, a bowl of ramen. All flatten or hold still under reduced motion."
       >
         <Depth3DDemo />
       </Section>
 
       <Section
         title="Scroll reveal"
-        description="Cards rise and fade in, staggered, when scrolled into view — the pattern used across every page's content grids."
+        description="Cards rise and fade in, staggered, when scrolled into view, the pattern used across every page's content grids."
       >
         <Reveal className="grid gap-3 sm:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (

@@ -35,14 +35,14 @@ export function StepList({ steps }: StepListProps) {
               type="button"
               onClick={() => toggle(step.stepNumber)}
               aria-pressed={isDone}
-              className="flex w-full items-start gap-4 rounded-lg border border-border bg-card p-4 text-left transition-colors hover:border-primary/40"
+              className="flex w-full items-start gap-4 rounded-lg border border-border bg-card p-4 text-left transition-[transform,border-color] duration-150 ease-snappy hover:border-primary/40 motion-safe:active:scale-[0.99]"
             >
               <span
                 className={cn(
-                  "flex size-8 shrink-0 items-center justify-center rounded-full border text-sm font-semibold transition-colors",
+                  "flex size-8 shrink-0 items-center justify-center rounded-full border font-mono text-sm font-semibold tabular-nums transition-colors",
                   isDone
                     ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border text-muted-foreground",
+                    : "border-primary/30 text-primary",
                 )}
               >
                 {isDone ? (

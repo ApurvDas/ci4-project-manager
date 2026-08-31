@@ -75,7 +75,7 @@ export function StarRating({
             key={n}
             type="button"
             aria-label={`${n} star${n > 1 ? "s" : ""}`}
-            className="cursor-pointer p-0.5"
+            className="cursor-pointer p-0.5 transition-transform duration-150 ease-snappy motion-safe:active:scale-90"
             onMouseEnter={() => setHover(n)}
             onMouseLeave={() => setHover(null)}
             onClick={() => pick(n)}

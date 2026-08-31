@@ -85,7 +85,9 @@ export function ServingsScaler({
     <div className="rounded-lg border border-border bg-card">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
         <div>
-          <h2 className="font-semibold">Ingredients</h2>
+          <h2 className="font-display text-2xl font-medium tracking-tight">
+            Ingredients
+          </h2>
           <p className="text-sm text-muted-foreground">
             Scaled for{" "}
             <AnimatedNumber
@@ -104,7 +106,7 @@ export function ServingsScaler({
               aria-label="Fewer servings"
               onClick={() => step(-1)}
               disabled={servings <= MIN_SERVINGS}
-              className="flex size-9 items-center justify-center rounded-l-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-40"
+              className="flex size-9 items-center justify-center rounded-l-md text-muted-foreground transition-[transform,background-color,color] duration-150 ease-snappy hover:bg-muted hover:text-foreground motion-safe:active:scale-90 disabled:opacity-40"
             >
               <Minus className="size-4" />
             </button>
@@ -116,7 +118,7 @@ export function ServingsScaler({
               aria-label="More servings"
               onClick={() => step(1)}
               disabled={servings >= MAX_SERVINGS}
-              className="flex size-9 items-center justify-center rounded-r-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-40"
+              className="flex size-9 items-center justify-center rounded-r-md text-muted-foreground transition-[transform,background-color,color] duration-150 ease-snappy hover:bg-muted hover:text-foreground motion-safe:active:scale-90 disabled:opacity-40"
             >
               <Plus className="size-4" />
             </button>
@@ -139,7 +141,7 @@ export function ServingsScaler({
             <span className="flex-1">
               {ing.name}
               {ing.notes && (
-                <span className="text-muted-foreground"> — {ing.notes}</span>
+                <span className="text-muted-foreground">, {ing.notes}</span>
               )}
             </span>
             <button
@@ -154,7 +156,7 @@ export function ServingsScaler({
                   },
                 ])
               }
-              className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-all hover:bg-primary/10 hover:text-primary focus-visible:opacity-100 group-hover:opacity-100"
+              className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-[transform,opacity,background-color,color] duration-150 ease-snappy hover:bg-primary/10 hover:text-primary motion-safe:active:scale-90 focus-visible:opacity-100 group-hover:opacity-100"
             >
               <ListPlus className="size-4" />
             </button>

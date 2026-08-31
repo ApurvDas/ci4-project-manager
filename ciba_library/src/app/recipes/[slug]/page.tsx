@@ -51,7 +51,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
               </Badge>
             ))}
           </div>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+          <h1 className="mt-3 font-display text-4xl font-medium leading-[1.1] tracking-tight sm:text-5xl">
             {recipe.title}
           </h1>
           <p className="mt-3 text-lg text-muted-foreground">
@@ -115,7 +115,9 @@ export default async function RecipePage({ params }: RecipePageProps) {
         </div>
 
         <div>
-          <h2 className="mb-4 text-xl font-semibold tracking-tight">Method</h2>
+          <h2 className="mb-4 font-display text-2xl font-medium tracking-tight">
+            Method
+          </h2>
           <StepList steps={recipe.steps} />
 
           <p className="mt-8 text-xs text-muted-foreground">
