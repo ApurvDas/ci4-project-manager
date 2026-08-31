@@ -1,6 +1,16 @@
 # Ciba Library — Project Status & Resume Plan
 
-_Last updated: 2026-08-31. Read this first when resuming._
+_Last updated: 2026-09-01. Read this first when resuming._
+
+> **Current state:** Phases 1–5 are complete and a follow-on UI-elevation pass
+> shipped (editorial display type, shared easing tokens, press feedback, proxy
+> migration). Verified green: `npm test` (27 Vitest unit tests), `npx playwright
+> test` (4 e2e, needs Docker Postgres up), `npx tsc --noEmit`, `npx next build`.
+> The dev server runs on **:3210** now (not :3000). `middleware.ts` is now
+> `proxy.ts` (Next 16 convention). **Remaining / deferred:** password-reset flow
+> + email delivery (needs a decision on the email transport), real Google OAuth
+> credentials (user-supplied), and a browser visual-QA pass (needs the Chrome
+> extension connected).
 
 A motion-first community food-recipe website. anime.js is the centerpiece —
 motion is a signature feature, not decoration — layered over a clean, minimal,
@@ -41,9 +51,10 @@ Directive in force: **"do all 5 phases together."**
 |------|------|--------|
 | 1 | Motion system + `/styleguide` | ✅ Done (tsc + build clean, verified) |
 | 2 | Coded frontend on mock data (all components + pages) | ✅ **Done** — see §3 |
-| 3 | Backend foundation (Prisma, Auth.js, storage, docker-compose) | ⬜ Next |
-| 4 | Wire data layer to Prisma + Server Actions | ⬜ |
-| 5 | Seed data + polish + tests (Vitest + Playwright) | ⬜ |
+| 3 | Backend foundation (Prisma, Auth.js, storage, docker-compose) | ✅ Done (schema + migration + `db.ts` + `auth.ts` + `proxy.ts`) |
+| 4 | Wire data layer to Prisma + Server Actions | ✅ Done (`src/data/*` on Prisma, `src/lib/actions/*` server actions) |
+| 5 | Seed data + polish + tests (Vitest + Playwright) | ✅ Done (`prisma/seed.ts`; 27 unit + 4 e2e tests) |
+| — | UI-elevation pass (editorial type, easing tokens, press feedback) | ✅ Done |
 
 ---
 
