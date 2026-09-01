@@ -1,0 +1,11 @@
+{
+  "userIgnoreFilters": [
+    "BudgetApplication-main/",
+    "ciba_library/",
+    "project-manager/",
+    ".claude/",
+    ".codex/",
+    ".impeccable/",
+    ".playwright-mcp/"
+  ]
+}
