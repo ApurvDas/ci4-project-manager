@@ -10,3 +10,9 @@ version="$2"
 sed -i -E "s#(assets/[^\"']+\.(css|js))([\"'])#\1?v=${version}\3#g" "$dir"/*.html
 find "$dir/assets/js" -name '*.js' -not -path '*/lib/*' -print0 |
     xargs -0 sed -i -E "s#(from '\.{1,2}/[^']+\.js)'#\1?v=${version}'#g"
+
+# Pages also caches the HTML itself for ~10 minutes, and that stale HTML points
+# at the previous build. Each page records its build; app.js compares it with
+# version.txt (fetched uncached) and reloads once if a newer build is live.
+sed -i -E "s#<meta charset=\"utf-8\">#<meta charset=\"utf-8\">\n    <script>window.BUILD = '${version}';</script>#" "$dir"/*.html
+printf '%s' "$version" > "$dir/version.txt"

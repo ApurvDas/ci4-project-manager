@@ -5,6 +5,23 @@ import config from './config.js';
 
 export const sb = window.supabase.createClient(config.url, config.anonKey);
 
+// Live site only (the deploy sets window.BUILD): if the browser served this
+// page's HTML from an older build, reload once so it picks up the new one.
+if (window.BUILD) {
+    fetch('version.txt', { cache: 'no-store' })
+        .then((r) => (r.ok ? r.text() : null))
+        .then((latest) => {
+            latest = latest?.trim();
+            if (!latest || latest === window.BUILD) return;
+            try {
+                if (sessionStorage.getItem('reloadedFor') === latest) return; // never loop
+                sessionStorage.setItem('reloadedFor', latest);
+            } catch { /* storage blocked: still worth one reload */ }
+            location.reload();
+        })
+        .catch(() => { /* offline or blocked: keep the page as it is */ });
+}
+
 // ---------------------------------------------------------------- templates
 
 // html`...` escapes every interpolated value unless it is itself html`` or raw().
