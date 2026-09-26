@@ -1979,6 +1979,13 @@ input:checked:focus + .switch-left + .switch-right {
   transform: rotate(45deg);
 }
 
+/* The Uiverse geometry assumes content-box sizing; the site-wide border-box
+   reset would squeeze the tick (its border counted inside 0.25em x 0.5em). */
+.checkmark,
+.checkmark:after {
+  box-sizing: content-box;
+}
+
 /* Keyboard focus on the hidden input shows on the visible box. */
 .checkbox input:focus-visible ~ .checkmark,
 .checklist-box:focus-visible .checkmark {
