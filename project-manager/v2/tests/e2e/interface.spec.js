@@ -108,12 +108,12 @@ test.describe('Projects and tasks', () => {
     test('suggested tags add in one click; custom tags get a colour automatically', async ({ page }) => {
         await signIn(page, 'admin');
         await page.goto('/project.html?id=1'); // already has Design, Frontend, Backend, Urgent
-        await expect(page.getByRole('button', { name: 'Add tag Design' })).toHaveCount(0);
+        await expect(page.getByRole('button', { name: 'Add tag Design', exact: true })).toHaveCount(0);
 
-        await page.getByRole('button', { name: 'Add tag Bug' }).click();
+        await page.getByRole('button', { name: 'Add tag Bug', exact: true }).click();
         await expect(page.locator('.alert-success')).toContainText('Tag added');
         await expect(page.locator('.tag-list .tag', { hasText: 'Bug' }).first()).toBeVisible();
-        await expect(page.getByRole('button', { name: 'Add tag Bug' })).toHaveCount(0);
+        await expect(page.getByRole('button', { name: 'Add tag Bug', exact: true })).toHaveCount(0);
 
         await page.fill('#tag-name', 'Investor Meet');
         expect(await page.inputValue('#tag-color')).not.toBe('#6b7280');
