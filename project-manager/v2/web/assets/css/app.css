@@ -589,10 +589,26 @@ button, input, select, textarea {
     cursor: pointer;
 }
 
+/* The real checkbox stays (keyboard, screen readers, clicks anywhere on the
+   label) but is invisible and stretched over the label; the .checkmark next
+   to it is what you see. */
+.checkbox {
+    position: relative;
+}
+
+/* Inside forms, .field label would make this a block; keep it a row. */
+.field .checkbox {
+    display: inline-flex;
+    margin-bottom: 0;
+}
+
 .checkbox input {
-    width: 16px;
-    height: 16px;
-    accent-color: var(--primary);
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
     cursor: pointer;
 }
 
@@ -1065,21 +1081,11 @@ button, input, select, textarea {
 .checklist-box {
     display: grid;
     place-items: center;
-    width: 20px;
-    height: 20px;
     flex-shrink: 0;
     padding: 0;
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius-sm);
-    background: var(--surface);
-    color: var(--primary);
-    font-size: 0.75rem;
-    line-height: 1;
+    border: 0;
+    background: none;
     cursor: pointer;
-}
-
-.checklist-box:hover {
-    border-color: var(--primary);
 }
 
 .checklist-add {
@@ -1919,4 +1925,67 @@ input:checked:focus + .switch-left + .switch-right {
 :root[data-theme="dark"] .rocker::before {
   border-color: transparent;
   background-color: transparent;
+}
+
+/* Animated checkbox ------------------------------------------------------------ */
+/* From Uiverse.io by SelfMadeSystem: an outlined rounded square that fills blue
+   while the outline rotates into a white tick. Used by form checkboxes
+   (.checkbox input:checked ~ .checkmark) and checklist ticks
+   (.checklist-box[aria-pressed="true"] or .is-checked). The outline uses the
+   text colour instead of black so it shows in dark mode too. */
+.checkmark {
+  position: relative;
+  display: inline-block;
+  top: 0;
+  left: 0;
+  flex-shrink: 0;
+  font-size: 16px; /* sizes the box: 1.3em */
+  height: 1.3em;
+  width: 1.3em;
+  background-color: #2196F300;
+  border-radius: 0.25em;
+  transition: all 0.25s;
+}
+
+.checkmark:after {
+  content: "";
+  position: absolute;
+  transform: rotate(0deg);
+  border: 0.1em solid var(--text);
+  left: 0;
+  top: 0;
+  width: 1.05em;
+  height: 1.05em;
+  border-radius: 0.25em;
+  transition: all 0.25s, border-width 0.1s;
+}
+
+.checkbox input:checked ~ .checkmark,
+.checklist-box[aria-pressed="true"] .checkmark,
+.checklist-box.is-checked .checkmark {
+  background-color: #2196F3;
+}
+
+.checkbox input:checked ~ .checkmark:after,
+.checklist-box[aria-pressed="true"] .checkmark:after,
+.checklist-box.is-checked .checkmark:after {
+  left: 0.45em;
+  top: 0.25em;
+  width: 0.25em;
+  height: 0.5em;
+  border-color: #fff0 white white #fff0;
+  border-width: 0 0.15em 0.15em 0;
+  border-radius: 0em;
+  transform: rotate(45deg);
+}
+
+/* Keyboard focus on the hidden input shows on the visible box. */
+.checkbox input:focus-visible ~ .checkmark,
+.checklist-box:focus-visible .checkmark {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.checklist-box:focus-visible {
+  outline: none;
 }

@@ -59,8 +59,8 @@ render(content, html`
                     <div class="checklist"><ul class="checklist-items">${items.map((i) => html`
                         <li class="checklist-item ${i.is_completed ? 'is-done' : ''}">
                             ${canWrite
-                                ? html`<button type="button" class="checklist-box" data-toggle-item="${i.id}" aria-pressed="${i.is_completed}" aria-label="Toggle ${i.content}">${i.is_completed ? '✓' : ''}</button>`
-                                : html`<span class="checklist-box" aria-hidden="true">${i.is_completed ? '✓' : ''}</span>`}
+                                ? html`<button type="button" class="checklist-box" data-toggle-item="${i.id}" aria-pressed="${i.is_completed}" aria-label="Toggle ${i.content}"><span class="checkmark"></span></button>`
+                                : html`<span class="checklist-box ${i.is_completed ? 'is-checked' : ''}" aria-hidden="true"><span class="checkmark"></span></span>`}
                             <span class="checklist-text" data-text>${i.content}</span>
                             ${canWrite ? html`<span class="checklist-tools">
                                 <button type="button" data-edit="item" data-id="${i.id}" data-max="255" aria-label="Edit ${i.content}">✎</button>
@@ -237,7 +237,6 @@ content.addEventListener('click', async (event) => {
         const progress = await call(sb.rpc('toggle_item', { p_item: Number(box.dataset.toggleItem) }));
         const done = box.getAttribute('aria-pressed') !== 'true';
         box.setAttribute('aria-pressed', String(done));
-        box.textContent = done ? '✓' : '';
         box.closest('.checklist-item').classList.toggle('is-done', done);
         content.querySelector('[data-checklist-progress]').textContent = progressText(progress);
     } catch (error) {

@@ -52,7 +52,7 @@ render(content, html`
                     <label>Assignees</label>
                     <div class="check-grid">${members.map((m) => html`
                         <label class="checkbox">
-                            <input type="checkbox" name="assignees" value="${m.user_id}" ${assigned.has(m.user_id) ? 'checked' : ''}>
+                            <input type="checkbox" name="assignees" value="${m.user_id}" ${assigned.has(m.user_id) ? 'checked' : ''}><span class="checkmark"></span>
                             ${m.profile.username} <span class="text-muted">(${humanise(m.role)})</span>
                         </label>`)}
                     </div>
@@ -63,7 +63,7 @@ render(content, html`
                     ${tags.length === 0 ? html`<p class="hint">No tags yet — create them on the project page.</p>` : html`
                         <div class="check-grid">${tags.map((t) => html`
                             <label class="checkbox">
-                                <input type="checkbox" name="tags" value="${t.id}" ${tagged.has(t.id) ? 'checked' : ''}>
+                                <input type="checkbox" name="tags" value="${t.id}" ${tagged.has(t.id) ? 'checked' : ''}><span class="checkmark"></span>
                                 <span class="tag-swatch" style="background: ${t.color}"></span>${t.name}
                             </label>`)}
                         </div>`}
