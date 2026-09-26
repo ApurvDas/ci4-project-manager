@@ -8,6 +8,17 @@ The same app as the CodeIgniter version one folder up, rebuilt to host for free:
 The browser is never trusted. Every permission from the old `ProjectPolicy` is enforced in
 Postgres (`supabase/migrations/*_rls.sql`, `*_logic.sql`); the UI only hides controls.
 
+## Live demo
+
+https://apurvdas.github.io/ci4-project-manager/ — sign in as `guest@example.com` / `TourTheBoard-2026`.
+
+The guest and its sample projects are built by `scripts/seed-showcase.mjs`. Re-run it to restore
+them (it resets the showcase accounts and recreates their projects; nothing else is touched):
+
+```bash
+SUPABASE_URL=https://<ref>.supabase.co SERVICE_ROLE_KEY=... ANON_KEY=... GUEST_PASSWORD='TourTheBoard-2026' node scripts/seed-showcase.mjs
+```
+
 ## Run it locally
 
 Needs Docker Desktop running, and Node.
