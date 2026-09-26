@@ -3,9 +3,16 @@
     "BudgetApplication-main/",
     "ciba_library/",
     "project-manager/",
+    "RemainderApplication-main/",
     ".claude/",
     ".codex/",
     ".impeccable/",
     ".playwright-mcp/"
-  ]
+  ],
+  "pdfExportSettings": {
+    "pageSize": "Letter",
+    "landscape": false,
+    "margin": "0",
+    "downscalePercent": 100
+  }
 }

@@ -5,17 +5,20 @@ the centerpiece here, motion is a signature feature, not decoration, layered ove
 a calm, minimal, achromatic-plus-terracotta visual style with full light **and**
 dark mode.
 
-![A rail of Ciba Library recipe covers](public/images/recipes/shakshuka-for-two.jpg)
+![Ciba Library home page, editorial hero with a 3D ramen bowl over the recipe grid](docs/screenshots/home-light.png)
+
+Light and dark mode, one accent locked across both:
 
 <p align="center">
-  <img src="public/images/recipes/miso-butter-mushroom-toast.jpg" width="32%" alt="Miso butter mushroom toast" />
-  <img src="public/images/recipes/roasted-cauliflower-chickpea-bowl.jpg" width="32%" alt="Roasted cauliflower and chickpea bowl" />
-  <img src="public/images/recipes/charred-corn-black-bean-tacos.jpg" width="32%" alt="Charred corn and black bean tacos" />
+  <img src="docs/screenshots/home-light.png" width="49%" alt="Home page in light mode" />
+  <img src="docs/screenshots/home-dark.png" width="49%" alt="Home page in dark mode" />
 </p>
+
+Browse with live filtering, and a magazine-style recipe detail with a servings scaler:
+
 <p align="center">
-  <img src="public/images/recipes/silky-roasted-carrot-soup.jpg" width="32%" alt="Silky roasted carrot soup" />
-  <img src="public/images/recipes/no-knead-country-loaf.jpg" width="32%" alt="No-knead country loaf" />
-  <img src="public/images/recipes/brown-butter-chocolate-chip-cookies.jpg" width="32%" alt="Brown butter chocolate chip cookies" />
+  <img src="docs/screenshots/browse.png" width="49%" alt="Browse page with filter rail and recipe grid" />
+  <img src="docs/screenshots/recipe-detail.png" width="49%" alt="Recipe detail with ingredients, method, and reviews" />
 </p>
 
 ## What it does

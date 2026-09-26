@@ -1,9 +1,15 @@
 # Home
 
-Entry point for this vault. Three projects live here; their curated notes are in
+Entry point for this vault. Four projects live here; their curated notes are in
 `Notes/`, and the live code stays in each project folder (hidden from Obsidian's index).
 
 ## Projects
+
+### Focus ⏱
+A motion-first focus webapp — Pomodoro timer, reminders, focus tasks, streak/stats —
+Python (FastAPI + SQLite) reusing Ciba's design tokens + motion. Grown from the seed reminder app.
+- Notes: [[Notes/Focus-App/README|Focus README]] · [[Notes/Focus-App/PROJECT_STATUS|Project Status & Phases (0–5)]] · [[Notes/Focus-App/Build-Phases|Build Phases]]
+- Code on disk: `RemainderApplication-main/` (built in-place on the seed reminder app)
 
 ### Khaata — Indian Expense Tracker
 Track income and expenses by category, in ₹ with `DD-MM-YYYY` dates.

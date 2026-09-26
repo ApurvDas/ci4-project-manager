@@ -4,17 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "595debc6e17de68e",
+        "id": "449f43893545b893",
         "type": "tabs",
         "children": [
           {
-            "id": "f142b66fe79273f2",
+            "id": "746b5136da9d879e",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "type": "markdown",
+              "state": {
+                "file": "Sindhura_files/GATE XH3 + UGC NET Linguistics Ultimate Book Map.md",
+                "mode": "preview",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "GATE XH3 + UGC NET Linguistics Ultimate Book Map"
             }
           }
         ]
@@ -30,21 +34,6 @@
         "id": "b1e7a417df923e78",
         "type": "tabs",
         "children": [
-          {
-            "id": "07828770679787aa",
-            "type": "leaf",
-            "state": {
-              "type": "file-explorer",
-              "state": {
-                "sortOrder": "alphabetical",
-                "autoReveal": false,
-                "showSearch": false,
-                "searchQuery": ""
-              },
-              "icon": "lucide-folder-closed",
-              "title": "Files"
-            }
-          },
           {
             "id": "6ac6ae79d914331c",
             "type": "leaf",
@@ -74,8 +63,24 @@
               "icon": "lucide-bookmark",
               "title": "Bookmarks"
             }
+          },
+          {
+            "id": "63c470e957dfa58e",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
           }
-        ]
+        ],
+        "currentTab": 2
       }
     ],
     "direction": "horizontal",
@@ -184,30 +189,41 @@
       "bases:Create new base": false
     }
   },
-  "active": "f142b66fe79273f2",
+  "active": "746b5136da9d879e",
   "lastOpenFiles": [
+    "Untitled.canvas",
+    "Sindhura_files/GATE XH3 + UGC NET Linguistics Ultimate Book Map.md",
+    "Sindhura_files",
+    "New folder",
+    "2026-09-14.md",
+    "stuti_project/SCENARIO4_EXPLAINED.md",
+    "stuti_project/README.md",
+    "UZO Files/05-09-2026.md",
+    "UZO Files",
+    "RemainderApplication-main/README.md",
+    "RemainderApplication-main/focus.db",
+    "RemainderApplication-main/focus.db-journal",
+    "Notes/Focus-App/PROJECT_STATUS.md.tmp.21564.d102f68549ad",
+    "Home.md.tmp.21564.29678bd2f4d5",
+    "RemainderApplication-main/__pycache__/db.cpython-310.pyc",
+    "RemainderApplication-main/__pycache__/app.cpython-310.pyc",
+    "RemainderApplication-main/__pycache__/reminders.cpython-310.pyc",
+    "Notes/Focus-App/README.md",
+    "Notes/Focus-App/Build-Phases.md",
+    "Notes/Focus-App/PROJECT_STATUS.md",
+    "focus-app/README.md",
     "Home.md",
     "Notes/Khaata-BudgetApp/Build-Phases.md",
     "Notes/Ciba-Library/PROJECT_STATUS.md",
     "Notes/Ciba-Library/README.md",
-    "Home.md.tmp.21564.0c96ca3b7509",
-    "Home.md.tmp.21564.a29600e6e0ca",
-    "Notes/Khaata-BudgetApp/Build-Phases.md.tmp.21564.6f037370c7f1",
     "Notes/Project-Manager/Build-Phases.md",
-    "Notes/Project-Manager/Build-Phases.md.tmp.21564.3067e6ec3012",
     "Notes/Vault-Organization-Plan.md",
-    "Home.md.tmp.21564.d9774f8fbe8b",
     "Notes/Khaata-BudgetApp/README.md",
     "project-manager/README.md",
-    "Home.md.tmp.21564.760b7fce2e21",
-    "Home.md.tmp.21564.471b6b2471a8",
-    "Home.md.tmp.21564.88871e998d92",
     "Notes/Project-Manager/tests-README.md",
     "Notes/Project-Manager/phase-15-auth-completion.md",
     "Notes/Project-Manager/README.md",
     "Notes/Project-Manager/deployment.md",
-    "Notes/Project-Manager",
-    "Notes/Khaata-BudgetApp",
     "ciba_library/README.md",
     "BudgetApplication-main/README.md"
   ]

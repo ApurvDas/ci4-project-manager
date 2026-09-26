@@ -1,21 +1,9 @@
 {
-  "ANTHROPIC_BASE_URL": {
-    "original": null,
-    "holders": [
-      {
-        "pid": 440,
-        "start_src": null,
-        "start_time": null,
-        "port": 8787,
-        "inherited": false
-      }
-    ]
-  },
   "ENABLE_TOOL_SEARCH": {
-    "original": null,
+    "original": "true",
     "holders": [
       {
-        "pid": 440,
+        "pid": 16724,
         "start_src": null,
         "start_time": null,
         "port": null,
