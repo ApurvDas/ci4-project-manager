@@ -1997,43 +1997,28 @@ input:checked:focus + .switch-left + .switch-right {
   outline: none;
 }
 
-/* Animated plus button ---------------------------------------------------------- */
-/* From Uiverse.io by mRcOol7, converted from Tailwind: a teal outlined circle
-   that turns 90deg and fills on hover and flashes brighter while pressed.
-   A focus ring is kept for keyboard users (the original removed it). */
-.plus-btn {
-  display: inline-block;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: none;
-  line-height: 0;
-  cursor: pointer;
-  outline: none;
-  transition: transform 300ms;
-}
-
-.plus-btn:hover {
-  transform: rotate(90deg);
-}
-
-.plus-btn svg {
-  stroke: #14b8a6; /* teal-500 */
+/* Animated plus icon ------------------------------------------------------------ */
+/* From Uiverse.io by mRcOol7 (converted from Tailwind), in the site's own
+   colours: on each quick-add tag chip it turns 90deg and fills on hover, and
+   flashes the primary colour while pressed. Follows light/dark via tokens. */
+.plus-icon {
+  width: 1.15em;
+  height: 1.15em;
+  flex-shrink: 0;
+  stroke: var(--text-muted);
   fill: none;
-  transition: all 300ms;
+  transition: transform 300ms, fill 300ms, stroke 300ms;
 }
 
-.plus-btn:hover svg {
-  fill: #115e59; /* teal-800 */
+.tag-suggest:hover .plus-icon,
+.tag-suggest:focus-visible .plus-icon {
+  transform: rotate(90deg);
+  stroke: var(--text);
+  fill: var(--surface-2);
 }
 
-.plus-btn:active svg {
-  stroke: #99f6e4; /* teal-200 */
-  fill: #0d9488; /* teal-600 */
+.tag-suggest:active .plus-icon {
+  stroke: var(--on-primary);
+  fill: var(--primary);
   transition-duration: 0s;
-}
-
-.plus-btn:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
 }
