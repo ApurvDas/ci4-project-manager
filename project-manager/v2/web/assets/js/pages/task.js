@@ -1,5 +1,5 @@
 import {
-    page, render, html, call, sb, me, fmtDate, fmtDue, fmtDateTime, isOverdue, badge, idParam, notFound, projectAndRole, can, onSubmit, go, showAlert, errorMessage, ACTIVITY, activityItem, overdueBanner, slide,
+    page, render, html, call, sb, me, fmtDate, fmtDue, fmtDateTime, isOverdue, badge, idParam, notFound, projectAndRole, can, onSubmit, go, showAlert, errorMessage, ACTIVITY, activityItem, overdueBanner, slide, icon,
 } from '../app.js';
 
 const projectId = idParam('project');
@@ -63,8 +63,8 @@ render(content, html`
                                 : html`<span class="checklist-box ${i.is_completed ? 'is-checked' : ''}" aria-hidden="true"><span class="checkmark"></span></span>`}
                             <span class="checklist-text" data-text>${i.content}</span>
                             ${canWrite ? html`<span class="checklist-tools">
-                                <button type="button" data-edit="item" data-id="${i.id}" data-max="255" aria-label="Edit ${i.content}">✎</button>
-                                <button type="button" data-delete="item" data-id="${i.id}" aria-label="Delete ${i.content}">×</button>
+                                <button type="button" class="box-button" data-edit="item" data-id="${i.id}" data-max="255" aria-label="Edit ${i.content}" title="Edit"><span class="box-button__face">${icon('edit')}</span></button>
+                                <button type="button" class="box-button box-button--danger" data-delete="item" data-id="${i.id}" aria-label="Delete ${i.content}" title="Delete"><span class="box-button__face">${icon('trash')}</span></button>
                             </span>` : ''}
                         </li>`)}
                     </ul></div>`}

@@ -40,6 +40,9 @@ const ICONS = {
 // Inside of a sliding action button (Uiverse, andrew-demchenk0): the label,
 // plus an icon panel that slides across the whole button on hover. Use on a
 // .btn with the extra class .btn-slide.
+// A bare line icon from the same set (for icon-only buttons).
+export const icon = (name) => html`<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">${raw(ICONS[name])}</svg>`;
+
 export const slide = (label, icon) => html`<span class="btn-slide__text">${label}</span><span class="btn-slide__icon" aria-hidden="true"><svg viewBox="0 0 24 24">${raw(ICONS[icon])}</svg></span>`;
 
 export function render(el, content) {

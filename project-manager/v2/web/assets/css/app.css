@@ -2245,3 +2245,66 @@ input:checked:focus + .switch-left + .switch-right {
 .member-list .list-item-aside {
   margin-left: auto;
 }
+
+/* 3D box button ------------------------------------------------------------------ */
+/* From Uiverse.io by arthur_6104, scaled down for checklist rows and recoloured
+   with the site's tokens (light and dark): a raised face on a darker base
+   that sinks into it when pressed. Used for each checklist item's edit and
+   delete. */
+.checklist-tools {
+  gap: var(--space-2);
+  opacity: 1; /* real buttons now; no longer faded until hover */
+}
+
+.checklist-tools .box-button {
+  --box-depth: 3px;
+  display: inline-block;
+  padding: 0 0 var(--box-depth);
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background-color: var(--border-strong);
+  color: var(--text);
+  line-height: 0;
+  cursor: pointer;
+  user-select: none;
+  transition: 0.1s ease-in-out;
+}
+
+.box-button__face {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 24px;
+  border: 1.5px solid var(--surface);
+  border-radius: 3px;
+  background-color: var(--surface-2);
+}
+
+.box-button__face .icon {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.checklist-tools .box-button--danger {
+  color: var(--danger);
+}
+
+.checklist-tools .box-button:hover .box-button__face {
+  background-color: var(--surface);
+}
+
+.checklist-tools .box-button:active {
+  padding: 0;
+  margin-bottom: var(--box-depth);
+  transform: translateY(var(--box-depth));
+}
+
+.checklist-tools .box-button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
