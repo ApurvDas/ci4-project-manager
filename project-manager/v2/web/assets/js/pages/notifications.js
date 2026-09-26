@@ -1,4 +1,4 @@
-import { page, render, html, call, sb, fmtDateTime, onSubmit, go } from '../app.js';
+import { page, render, html, call, sb, fmtDateTime, onSubmit, go, slide } from '../app.js';
 
 const content = await page('Notifications');
 const notifications = await call(sb.from('notifications').select('*').order('created_at', { ascending: false }).limit(50));
@@ -14,7 +14,7 @@ render(content, html`
             <h1>Notifications</h1>
             <p class="text-muted">${unread > 0 ? `${unread} unread` : 'You are all caught up.'}</p>
         </div>
-        ${unread > 0 ? html`<form data-read="all"><button type="submit" class="btn btn-secondary">Mark all as read</button></form>` : ''}
+        ${unread > 0 ? html`<form data-read="all"><button type="submit" class="btn btn-secondary btn-slide">${slide('Mark all as read', 'check-all')}</button></form>` : ''}
     </div>
     <section class="card">
         ${notifications.length === 0 ? html`<div class="empty-state">
@@ -34,7 +34,7 @@ render(content, html`
                             </div>
                         </div>
                     </div>
-                    ${n.read_at ? '' : html`<form class="inline-form" data-read="${n.id}"><button type="submit" class="btn btn-secondary btn-sm">Mark as read</button></form>`}
+                    ${n.read_at ? '' : html`<form class="inline-form" data-read="${n.id}"><button type="submit" class="btn btn-secondary btn-sm btn-slide">${slide('Mark as read', 'save')}</button></form>`}
                 </li>`;
             })}</ul>`}
     </section>`);

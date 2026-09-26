@@ -185,8 +185,10 @@
                 // flight. The button keeps its width so the layout is stable.
                 submit.setAttribute('aria-busy', 'true');
                 submit.disabled = true;
-                submit.dataset.idleLabel = submit.textContent;
-                submit.textContent = submit.dataset.busyLabel || 'Please wait…';
+                // A sliding button keeps its icon: only its label changes.
+                var label = submit.querySelector('.btn-slide__text') || submit;
+                submit.dataset.idleLabel = label.textContent;
+                label.textContent = submit.dataset.busyLabel || 'Please wait…';
             }
         });
     }
@@ -222,7 +224,7 @@
             if (submit && submit.dataset.idleLabel) {
                 submit.removeAttribute('aria-busy');
                 submit.disabled = false;
-                submit.textContent = submit.dataset.idleLabel;
+                (submit.querySelector('.btn-slide__text') || submit).textContent = submit.dataset.idleLabel;
             }
         },
     };

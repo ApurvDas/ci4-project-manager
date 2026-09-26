@@ -1,4 +1,4 @@
-import { page, render, html, call, sb, humanise, fmtShort, isOverdue, idParam, notFound, projectAndRole, can, badge, taskLate, overdueBadge } from '../app.js';
+import { page, render, html, call, sb, humanise, fmtShort, isOverdue, idParam, notFound, projectAndRole, can, badge, taskLate, overdueBadge, slide } from '../app.js';
 import { enableBoard } from '../board.js';
 
 const STATUSES = ['todo', 'in_progress', 'review', 'completed'];
@@ -36,7 +36,7 @@ render(content, html`
         </div>
         <div class="toolbar">
             <a class="btn btn-secondary" href="tasks.html?project=${id}">List view</a>
-            ${canWrite ? html`<a class="btn btn-primary" href="task-form.html?project=${id}">New task</a>` : ''}
+            ${canWrite ? html`<a class="btn btn-primary btn-slide" href="task-form.html?project=${id}">${slide('New task', 'plus')}</a>` : ''}
         </div>
     </div>
     ${canWrite ? '' : html`<div class="alert alert-info mb-4" role="status">You have read-only access to this project, so cards cannot be moved.</div>`}

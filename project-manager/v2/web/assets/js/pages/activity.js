@@ -1,5 +1,5 @@
 // Full project history: filterable by type, action and person; 20 per page.
-import { page, render, html, call, sb, humanise, param, idParam, notFound, projectAndRole, ACTIVITY, activityItem } from '../app.js';
+import { page, render, html, call, sb, humanise, param, idParam, notFound, projectAndRole, ACTIVITY, activityItem, slide } from '../app.js';
 
 const PER_PAGE = 20;
 const TYPES = ['project', 'member', 'task'];
@@ -56,7 +56,7 @@ render(content, html`
                 ${select('user_id', 'Person', 'Anyone', members.map((m) => [m.user_id, m.profile.username]))}
                 <div class="field" style="align-self: end;">
                     <div class="toolbar">
-                        <button type="submit" class="btn btn-primary">Apply</button>
+                        <button type="submit" class="btn btn-primary btn-slide">${slide('Apply', 'filter')}</button>
                         ${hasFilter ? html`<a class="btn btn-ghost" href="activity.html?project=${id}">Clear</a>` : ''}
                     </div>
                 </div>

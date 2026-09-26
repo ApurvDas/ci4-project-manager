@@ -1,5 +1,5 @@
 // New task (?project=N) or edit one (?project=N&id=M). Member+ only.
-import { page, render, html, call, sb, humanise, idParam, onSubmit, go, notFound, projectAndRole, can, dueTimeField } from '../app.js';
+import { page, render, html, call, sb, humanise, idParam, onSubmit, go, notFound, projectAndRole, can, dueTimeField, slide } from '../app.js';
 
 const STATUSES = ['todo', 'in_progress', 'review', 'completed'];
 const PRIORITIES = ['low', 'medium', 'high', 'critical'];
@@ -70,7 +70,7 @@ render(content, html`
                 </div>
             </div>
             <div class="form-actions">
-                <button type="submit" class="btn btn-primary" data-busy-label="Saving…">${id ? 'Save changes' : 'Create task'}</button>
+                <button type="submit" class="btn btn-primary btn-slide" data-busy-label="Saving…">${id ? slide('Save changes', 'save') : slide('Create task', 'plus')}</button>
                 <a class="btn btn-ghost" href="${back}">Cancel</a>
             </div>
         </form>

@@ -1,5 +1,5 @@
 import {
-    page, render, html, call, sb, me, fmtDate, fmtDue, fmtDateTime, isOverdue, badge, idParam, notFound, projectAndRole, can, onSubmit, go, showAlert, errorMessage, ACTIVITY, activityItem, overdueBanner,
+    page, render, html, call, sb, me, fmtDate, fmtDue, fmtDateTime, isOverdue, badge, idParam, notFound, projectAndRole, can, onSubmit, go, showAlert, errorMessage, ACTIVITY, activityItem, overdueBanner, slide,
 } from '../app.js';
 
 const projectId = idParam('project');
@@ -40,8 +40,8 @@ render(content, html`
             </div>
         </div>
         <div class="toolbar">
-            ${canWrite ? html`<a class="btn btn-secondary" href="task-form.html?project=${projectId}&id=${id}">Edit</a>` : ''}
-            ${canDelete ? html`<form class="inline-form" data-action="delete-task" data-confirm="Delete this task?"><button type="submit" class="btn btn-danger">Delete</button></form>` : ''}
+            ${canWrite ? html`<a class="btn btn-secondary btn-slide" href="task-form.html?project=${projectId}&id=${id}">${slide('Edit', 'edit')}</a>` : ''}
+            ${canDelete ? html`<form class="inline-form" data-action="delete-task" data-confirm="Delete this task?"><button type="submit" class="btn btn-danger btn-slide">${slide('Delete', 'trash')}</button></form>` : ''}
         </div>
     </div>
     ${overdue ? overdueBanner('task', task.due_date, task.due_time) : ''}
@@ -75,7 +75,7 @@ render(content, html`
                             <textarea id="checklist-items" name="items" rows="3" placeholder="Add an item — or paste a list, one per line" required></textarea>
                             <p class="hint">Bullets and checkboxes at the start of a line are removed. Ctrl+Enter adds.</p>
                         </div>
-                        <button type="submit" class="btn btn-secondary mt-4">Add</button>
+                        <button type="submit" class="btn btn-secondary btn-slide mt-4">${slide('Add', 'plus')}</button>
                     </form>
                 </div>` : ''}
             </section>
@@ -90,7 +90,7 @@ render(content, html`
                                 <strong>${c.profile.username}</strong>
                                 ${canManage || c.user_id === me.id ? html`
                                     <form class="inline-form" data-action="delete-comment" data-comment="${c.id}" data-confirm="Delete this comment?">
-                                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                        <button type="submit" class="btn btn-danger btn-sm btn-slide">${slide('Delete', 'trash')}</button>
                                     </form>` : ''}
                             </div>
                             <div class="activity-body pre-line">${c.comment}</div>
@@ -100,7 +100,7 @@ render(content, html`
                 ${canWrite ? html`<div class="card-body" style="${border}">
                     <form data-action="comment">
                         <div class="field"><label for="comment">Add a comment</label><textarea id="comment" name="comment" maxlength="5000" required></textarea></div>
-                        <button type="submit" class="btn btn-primary mt-4" data-busy-label="Posting…">Post comment</button>
+                        <button type="submit" class="btn btn-primary btn-slide mt-4" data-busy-label="Posting…">${slide('Post comment', 'send')}</button>
                     </form>
                 </div>` : ''}
             </section>
@@ -200,7 +200,7 @@ content.addEventListener('click', async (event) => {
     // Swap the text for a small inline form: Enter saves, Esc cancels.
     const form = document.createElement('form');
     form.className = 'checklist-edit';
-    form.innerHTML = '<input type="text" required><button type="submit" class="btn btn-secondary btn-sm">Save</button><button type="button" class="btn btn-ghost btn-sm" data-cancel>Cancel</button>';
+    form.innerHTML = `<input type="text" required><button type="submit" class="btn btn-secondary btn-sm btn-slide">${slide('Save', 'save')}</button><button type="button" class="btn btn-ghost btn-sm" data-cancel>Cancel</button>`;
     const input = form.querySelector('input');
     input.value = text.textContent;
     input.maxLength = Number(edit.dataset.max);

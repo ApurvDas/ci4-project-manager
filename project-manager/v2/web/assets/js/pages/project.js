@@ -1,5 +1,5 @@
 import {
-    page, render, html, call, sb, me, humanise, fmtDate, fmtDue, badge, idParam, notFound, projectAndRole, can, onSubmit, go, ACTIVITY, activityItem, taskLate, projectLate, overdueBadge, overdueBanner,
+    page, render, html, call, sb, me, humanise, fmtDate, fmtDue, badge, idParam, notFound, projectAndRole, can, onSubmit, go, ACTIVITY, activityItem, taskLate, projectLate, overdueBadge, overdueBanner, slide,
 } from '../app.js';
 
 const STATUSES = ['todo', 'in_progress', 'review', 'completed'];
@@ -67,12 +67,12 @@ render(content, html`
             <div class="list-item-meta">${badge('status', project.status)}${badge('priority', project.priority)}<span>You are ${memberIds.has(me.id) ? humanise(role) : 'Site admin'}</span></div>
         </div>
         <div class="toolbar">
-            ${canManage ? html`<a class="btn btn-secondary" href="project-form.html?id=${id}">Edit</a>` : ''}
+            ${canManage ? html`<a class="btn btn-secondary btn-slide" href="project-form.html?id=${id}">${slide('Edit', 'edit')}</a>` : ''}
             ${isOwner ? html`
-                <form class="inline-form" data-action="status"><button type="submit" class="btn btn-secondary">${project.status === 'archived' ? 'Reopen' : 'Archive'}</button></form>
+                <form class="inline-form" data-action="status"><button type="submit" class="btn btn-secondary btn-slide">${project.status === 'archived' ? slide('Reopen', 'reopen') : slide('Archive', 'archive')}</button></form>
                 <form class="inline-form" data-action="delete-project"
                       data-confirm="Delete this project? Its tasks, comments and history go with it. This cannot be undone.">
-                    <button type="submit" class="btn btn-danger">Delete</button>
+                    <button type="submit" class="btn btn-danger btn-slide">${slide('Delete', 'trash')}</button>
                 </form>` : ''}
         </div>
     </div>
@@ -101,7 +101,7 @@ render(content, html`
                     <div class="toolbar">
                         <a class="btn btn-secondary btn-sm" href="board.html?project=${id}">Board</a>
                         <a class="btn btn-secondary btn-sm" href="tasks.html?project=${id}">List</a>
-                        ${canWrite ? html`<a class="btn btn-primary btn-sm" href="task-form.html?project=${id}">New task</a>` : ''}
+                        ${canWrite ? html`<a class="btn btn-primary btn-sm btn-slide" href="task-form.html?project=${id}">${slide('New task', 'plus')}</a>` : ''}
                     </div>
                 </div>
                 ${tasks.length === 0 ? empty('No tasks yet', 'Break this project down into tasks to get started.') : html`
@@ -129,7 +129,7 @@ render(content, html`
         <div class="stack">
             <section class="card">
                 <div class="panel-head"><h2>Members</h2><span class="badge">${members.length}</span></div>
-                <ul class="list">${members.map((m) => html`
+                <ul class="list member-list">${members.map((m) => html`
                     <li class="list-item">
                         <div class="row">
                             <span class="avatar" aria-hidden="true">${m.profile.username[0]}</span>
@@ -140,11 +140,11 @@ render(content, html`
                                 <form class="inline-form" data-action="role" data-user="${m.user_id}">
                                     <label class="visually-hidden" for="role-${m.user_id}">Role for ${m.profile.username}</label>
                                     <select id="role-${m.user_id}" name="role">${options(assignable, m.role)}</select>
-                                    <button type="submit" class="btn btn-secondary btn-sm">Save</button>
+                                    <button type="submit" class="btn btn-secondary btn-sm btn-slide">${slide('Save', 'save')}</button>
                                 </form>` : ''}
                             ${canRemove(m) ? html`
                                 <form class="inline-form" data-action="remove" data-user="${m.user_id}" data-confirm="Remove ${m.profile.username} from this project?">
-                                    <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                                    <button type="submit" class="btn btn-danger btn-sm btn-slide">${slide('Remove', 'user-minus')}</button>
                                 </form>` : ''}
                         </div>
                     </li>`)}
@@ -160,7 +160,7 @@ render(content, html`
                                 <label for="member_role">Role</label>
                                 <select id="member_role" name="role" required>${options(assignable, 'member')}</select>
                             </div>
-                            <button type="submit" class="btn btn-secondary mt-4">Add to project</button>
+                            <button type="submit" class="btn btn-secondary btn-slide mt-4">${slide('Add to project', 'user-plus')}</button>
                         </form>`}
                 </div>` : ''}
             </section>
@@ -194,7 +194,7 @@ render(content, html`
                             <div class="field"><label for="tag-name">Custom tag</label><input type="text" id="tag-name" name="name" maxlength="50" placeholder="e.g. Investor" required></div>
                             <div class="field"><label for="tag-color">Colour</label><input type="color" id="tag-color" name="color" value="#6B7280"><p class="hint">Picked for you; change it if you like.</p></div>
                         </div>
-                        <button type="submit" class="btn btn-secondary mt-4">Add tag</button>
+                        <button type="submit" class="btn btn-secondary btn-slide mt-4">${slide('Add tag', 'tag')}</button>
                     </form>
                 </div>` : ''}
             </section>

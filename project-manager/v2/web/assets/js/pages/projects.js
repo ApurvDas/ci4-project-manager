@@ -1,4 +1,4 @@
-import { page, render, html, call, sb, humanise, fmtDue, badge, progress, today, nowTime, projectLate, overdueBadge } from '../app.js';
+import { page, render, html, call, sb, humanise, fmtDue, badge, progress, today, nowTime, projectLate, overdueBadge, slide } from '../app.js';
 
 const content = await page('Projects');
 const { myProjects: projects, otherProjects } = await call(sb.rpc('dashboard', { p_today: today(), p_now: nowTime() }));
@@ -26,14 +26,14 @@ render(content, html`
             <h1>Projects</h1>
             <p class="text-muted">Every project you own or belong to.</p>
         </div>
-        <a class="btn btn-primary" href="project-form.html">New project</a>
+        <a class="btn btn-primary btn-slide" href="project-form.html">${slide('New project', 'plus')}</a>
     </div>
     <section class="card">
         ${projects.length === 0 ? html`
             <div class="empty-state">
                 <h2>No projects yet</h2>
                 <p>Create your first project to start tracking work.</p>
-                <div class="row mt-4" style="justify-content: center;"><a class="btn btn-primary" href="project-form.html">New project</a></div>
+                <div class="row mt-4" style="justify-content: center;"><a class="btn btn-primary btn-slide" href="project-form.html">${slide('New project', 'plus')}</a></div>
             </div>` : html`
             ${projectList(projects, true)}`}
     </section>

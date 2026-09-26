@@ -2137,3 +2137,111 @@ input:checked:focus + .switch-left + .switch-right {
         right: var(--space-4);
     }
 }
+
+/* Sliding action button ---------------------------------------------------------- */
+/* From Uiverse.io by andrew-demchenk0, adapted: an icon panel on the right
+   that slides across the whole button on hover or keyboard focus, hiding the
+   label. The original was fixed at 150px and green; this works at any width
+   and takes each button's own site colours (primary / secondary / danger),
+   so it follows light and dark mode. */
+.btn-slide {
+  --slide-width: 38px;
+  position: relative;
+  overflow: hidden;
+  padding-right: calc(var(--slide-width) + var(--space-3));
+}
+
+.btn-sm.btn-slide {
+  --slide-width: 30px;
+  padding-right: calc(var(--slide-width) + var(--space-2));
+}
+
+.btn-slide__text {
+  white-space: nowrap;
+  transition: color 300ms;
+}
+
+.btn-slide__icon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--slide-width);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--slide-panel);
+  color: var(--slide-ink);
+  transition: width 300ms, background-color 300ms;
+}
+
+.btn-slide__icon svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.btn-sm .btn-slide__icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.btn-slide:not(:disabled):hover .btn-slide__text,
+.btn-slide:not(:disabled):focus-visible .btn-slide__text {
+  color: transparent;
+}
+
+.btn-slide:not(:disabled):hover .btn-slide__icon,
+.btn-slide:not(:disabled):focus-visible .btn-slide__icon {
+  width: 100%;
+}
+
+.btn-slide:not(:disabled):active .btn-slide__icon {
+  filter: brightness(0.88);
+}
+
+/* Colours per kind: the panel is a shade of the button's own colour. */
+.btn-primary.btn-slide {
+  --slide-panel: var(--primary-hover);
+  --slide-ink: var(--on-primary);
+}
+
+.btn-primary.btn-slide:hover {
+  background: var(--primary);
+}
+
+.btn-secondary.btn-slide {
+  --slide-panel: var(--surface-2);
+  --slide-ink: var(--text);
+}
+
+.btn-danger.btn-slide {
+  --slide-panel: var(--danger-soft);
+  --slide-ink: var(--danger);
+  border-color: var(--danger-soft);
+}
+
+.btn-danger.btn-slide:hover {
+  background: transparent;
+}
+
+/* Members: when the role/remove controls don't fit beside a name, they wrap
+   underneath rather than squeezing the name until it breaks mid-word. */
+.member-list .list-item {
+  flex-wrap: wrap;
+  row-gap: var(--space-2);
+}
+
+.member-list .list-item-title {
+  overflow-wrap: normal;
+  word-break: keep-all;
+}
+
+.member-list .list-item-aside {
+  margin-left: auto;
+}

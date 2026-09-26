@@ -1,4 +1,4 @@
-import { page, render, html, call, sb, dueState, idParam, notFound, projectAndRole, can, badge, taskLate, overdueBadge } from '../app.js';
+import { page, render, html, call, sb, dueState, idParam, notFound, projectAndRole, can, badge, taskLate, overdueBadge, slide } from '../app.js';
 
 const id = idParam('project');
 const content = await page('Tasks');
@@ -17,7 +17,7 @@ render(content, html`
         </div>
         <div class="toolbar">
             <a class="btn btn-secondary" href="board.html?project=${id}">Board view</a>
-            ${can(role, 'member') ? html`<a class="btn btn-primary" href="task-form.html?project=${id}">New task</a>` : ''}
+            ${can(role, 'member') ? html`<a class="btn btn-primary btn-slide" href="task-form.html?project=${id}">${slide('New task', 'plus')}</a>` : ''}
         </div>
     </div>
     <section class="card">

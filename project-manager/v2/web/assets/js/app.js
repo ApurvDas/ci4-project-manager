@@ -10,6 +10,7 @@ export const sb = window.supabase.createClient(config.url, config.anonKey);
 // html`...` escapes every interpolated value unless it is itself html`` or raw().
 class Raw {
     constructor(s) { this.s = s; }
+    toString() { return this.s; } // lets html`` output drop into a plain string
 }
 export const raw = (s) => new Raw(String(s));
 const ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
@@ -19,6 +20,27 @@ const show = (v) => (v instanceof Raw ? v.s
     : String(v).replace(/[&<>"']/g, (c) => ESC[c]));
 export const html = (strings, ...values) =>
     raw(strings.reduce((out, s, i) => out + s + (i < values.length ? show(values[i]) : ''), ''));
+
+// Line icons for the sliding action buttons (24px grid, drawn with currentColor).
+const ICONS = {
+    edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+    save: '<path d="M20 6 9 17l-5-5"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    trash: '<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m19 6-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/>',
+    archive: '<rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/>',
+    reopen: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>',
+    send: '<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
+    'user-plus': '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>',
+    'user-minus': '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 11h-6"/>',
+    tag: '<path d="M12.6 2.6A2 2 0 0 0 11.2 2H4a2 2 0 0 0-2 2v7.2a2 2 0 0 0 .6 1.4l8.7 8.7a2.4 2.4 0 0 0 3.4 0l6.6-6.6a2.4 2.4 0 0 0 0-3.4Z"/><circle cx="7.5" cy="7.5" r="1"/>',
+    'check-all': '<path d="M18 6 7 17l-5-5"/><path d="m22 10-7.5 7.5L13 16"/>',
+    filter: '<path d="M22 3H2l8 9.46V19l4 2v-8.54Z"/>',
+};
+
+// Inside of a sliding action button (Uiverse, andrew-demchenk0): the label,
+// plus an icon panel that slides across the whole button on hover. Use on a
+// .btn with the extra class .btn-slide.
+export const slide = (label, icon) => html`<span class="btn-slide__text">${label}</span><span class="btn-slide__icon" aria-hidden="true"><svg viewBox="0 0 24 24">${raw(ICONS[icon])}</svg></span>`;
 
 export function render(el, content) {
     el.innerHTML = show(content);

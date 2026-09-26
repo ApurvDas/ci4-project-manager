@@ -1,5 +1,5 @@
 // New project (no ?id) or edit an existing one (?id=N, manager+).
-import { page, render, html, call, sb, humanise, idParam, onSubmit, go, notFound, projectAndRole, can, dueTimeField } from '../app.js';
+import { page, render, html, call, sb, humanise, idParam, onSubmit, go, notFound, projectAndRole, can, dueTimeField, slide } from '../app.js';
 
 const STATUSES = ['planning', 'active', 'on_hold', 'completed', 'archived'];
 const PRIORITIES = ['low', 'medium', 'high', 'critical'];
@@ -56,7 +56,7 @@ render(content, html`
                 ${dueTimeField(project.due_time)}
             </div>
             <div class="form-actions">
-                <button type="submit" class="btn btn-primary" data-busy-label="Saving…">${id ? 'Save changes' : 'Create project'}</button>
+                <button type="submit" class="btn btn-primary btn-slide" data-busy-label="Saving…">${id ? slide('Save changes', 'save') : slide('Create project', 'plus')}</button>
                 <a class="btn btn-ghost" href="${back}">Cancel</a>
             </div>
         </form>
