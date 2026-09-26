@@ -829,6 +829,7 @@ button, input, select, textarea {
 /* Progress -------------------------------------------------------------------- */
 
 .progress {
+    display: block; /* a <span>: without this its width/height (and the fill's) are ignored */
     width: 120px;
     height: 6px;
     background: var(--surface-2);
@@ -837,6 +838,7 @@ button, input, select, textarea {
 }
 
 .progress-bar {
+    display: block;
     height: 100%;
     background: var(--primary);
     border-radius: 999px;

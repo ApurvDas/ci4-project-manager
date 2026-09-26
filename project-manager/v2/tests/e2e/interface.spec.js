@@ -144,6 +144,18 @@ test.describe('Projects and tasks', () => {
         await expect(page.locator('.alert-urgent')).toContainText('This task is overdue by 1 day');
     });
 
+    test('progress bars fill to their percentage', async ({ page }) => {
+        await signIn(page, 'developer');
+        await page.goto('/dashboard.html');
+        await expect(page.locator('.progress')).not.toHaveCount(0);
+        const bars = await page.locator('.progress').evaluateAll((tracks) => tracks.map((t) => ({
+            label: parseInt(t.getAttribute('aria-label'), 10),
+            filled: Math.round((100 * t.querySelector('.progress-bar').getBoundingClientRect().width) / t.getBoundingClientRect().width),
+        })));
+        for (const bar of bars) expect(bar.filled).toBe(bar.label);
+        expect(bars.some((bar) => bar.label > 0)).toBe(true);
+    });
+
     test('a non-member gets the not-found page', async ({ page }) => {
         await signIn(page, 'designer');
         await page.goto('/project.html?id=4'); // Internal Wiki
