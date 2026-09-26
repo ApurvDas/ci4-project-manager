@@ -129,6 +129,21 @@ test.describe('Projects and tasks', () => {
         await expect(row.locator('.list-item-tags .tag')).toHaveText(['Backend', 'Urgent']);
     });
 
+    test('overdue work is flagged urgently; finished work never is', async ({ page }) => {
+        await signIn(page, 'admin');
+        await page.goto('/tasks.html?project=1');
+        // "Accessibility audit" is in review and was due yesterday; "Design homepage" is past due but completed.
+        const late = page.locator('.list-item', { hasText: 'Accessibility audit' });
+        await expect(late).toHaveClass(/is-late/);
+        await expect(late.locator('.badge-overdue')).toHaveAttribute('title', 'Overdue by 1 day');
+        const done = page.locator('.list-item', { hasText: 'Design homepage' });
+        await expect(done).not.toHaveClass(/is-late/);
+        await expect(done.locator('.is-overdue')).toHaveCount(0);
+
+        await late.getByRole('link', { name: 'Accessibility audit' }).click();
+        await expect(page.locator('.alert-urgent')).toContainText('This task is overdue by 1 day');
+    });
+
     test('a non-member gets the not-found page', async ({ page }) => {
         await signIn(page, 'designer');
         await page.goto('/project.html?id=4'); // Internal Wiki

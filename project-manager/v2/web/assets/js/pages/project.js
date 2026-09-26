@@ -1,6 +1,5 @@
 import {
-    page, render, html, call, sb, me, humanise, fmtDate, fmtDue, badge, idParam, notFound, projectAndRole, can,
-    onSubmit, go, ACTIVITY, activityItem,
+    page, render, html, call, sb, me, humanise, fmtDate, fmtDue, badge, idParam, notFound, projectAndRole, can, onSubmit, go, ACTIVITY, activityItem, taskLate, projectLate, overdueBadge, overdueBanner,
 } from '../app.js';
 
 const STATUSES = ['todo', 'in_progress', 'review', 'completed'];
@@ -77,6 +76,7 @@ render(content, html`
                 </form>` : ''}
         </div>
     </div>
+    ${projectLate(project) ? overdueBanner('project', project.due_date, project.due_time) : ''}
 
     ${project.description ? html`<section class="card mb-4"><div class="card-body"><p class="pre-line">${project.description}</p></div></section>` : ''}
 
@@ -106,12 +106,12 @@ render(content, html`
                 </div>
                 ${tasks.length === 0 ? empty('No tasks yet', 'Break this project down into tasks to get started.') : html`
                     <ul class="list">${tasks.slice(0, 8).map((t) => html`
-                        <li class="list-item">
+                        <li class="list-item ${taskLate(t) ? 'is-late' : ''}">
                             <div>
                                 <div class="list-item-title"><a href="task.html?project=${id}&id=${t.id}">${t.title}</a></div>
                                 <div class="list-item-meta">${t.due_date ? `Due ${fmtDue(t.due_date, t.due_time)}` : 'No due date'}</div>
                             </div>
-                            <div class="list-item-aside">${badge('priority', t.priority)}${badge('status', t.status)}</div>
+                            <div class="list-item-aside">${taskLate(t) ? overdueBadge(t.due_date, t.due_time) : ''}${badge('priority', t.priority)}${badge('status', t.status)}</div>
                         </li>`)}
                     </ul>
                     ${tasks.length > 8 ? html`<div class="card-body" style="${border}"><a href="tasks.html?project=${id}">View all ${tasks.length} tasks</a></div>` : ''}`}

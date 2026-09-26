@@ -46,10 +46,32 @@ export const fmtDateTime = (v) => { const d = toDate(v); return `${fmtDate(v)}, 
 export const fmtDue = (date, time) => (date ? fmtDate(date) + (time ? `, ${hhmm(time)}` : '') : '');
 export const isOverdue = (date, time) => !!date && (date < today() || (date === today() && !!time && time < nowTime()));
 
-// [css class, label] for a deadline relative to now.
-export function dueState(due, time) {
+// Past its deadline and not finished: completed tasks and completed or
+// archived projects never count as late.
+export const taskLate = (t) => t.status !== 'completed' && isOverdue(t.due_date, t.due_time);
+export const projectLate = (p) => !['completed', 'archived'].includes(p.status) && isOverdue(p.due_date, p.due_time);
+
+// "Overdue by 3 days" / "Overdue since 17:30 today".
+export function overdueText(date, time) {
+    const days = Math.round((toDate(today()) - toDate(date)) / 86400000);
+    return days > 0 ? `Overdue by ${days} day${days === 1 ? '' : 's'}` : `Overdue since ${hhmm(time)} today`;
+}
+
+export const overdueBadge = (date, time) =>
+    html`<span class="badge badge-overdue" title="${overdueText(date, time)}">Overdue</span>`;
+
+// The banner at the top of an overdue task or project page.
+export const overdueBanner = (noun, date, time) => html`
+    <div class="alert alert-urgent mb-4" role="alert">
+        <strong>⚠ This ${noun} is ${overdueText(date, time).toLowerCase()}</strong> — it was due ${fmtDue(date, time)}. Deal with it now.
+    </div>`;
+
+// [css class, label] for a deadline relative to now. Pass done=true for
+// finished work, so a past date isn't flagged as overdue.
+export function dueState(due, time, done = false) {
     if (!due) return ['', 'No due date'];
     const at = time ? `, ${hhmm(time)}` : '';
+    if (done) return ['', `Due ${fmtDue(due, time)}`];
     if (isOverdue(due, time)) return ['is-overdue', `Overdue — ${fmtShort(due)}${at}`];
     if (due === today()) return ['is-due-today', `Due today${at}`];
     return ['', `Due ${fmtDue(due, time)}`];

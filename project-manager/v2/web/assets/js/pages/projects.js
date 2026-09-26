@@ -1,4 +1,4 @@
-import { page, render, html, call, sb, humanise, fmtDue, badge, progress, today, nowTime } from '../app.js';
+import { page, render, html, call, sb, humanise, fmtDue, badge, progress, today, nowTime, projectLate, overdueBadge } from '../app.js';
 
 const content = await page('Projects');
 const { myProjects: projects, otherProjects } = await call(sb.rpc('dashboard', { p_today: today(), p_now: nowTime() }));
@@ -6,11 +6,11 @@ const { myProjects: projects, otherProjects } = await call(sb.rpc('dashboard', {
 // Your own projects show your role; other projects (seen as a site admin) don't have one.
 function projectList(list, showRole) {
     return html`<ul class="list">${list.map((p) => html`
-        <li class="list-item">
+        <li class="list-item ${projectLate(p) ? 'is-late' : ''}">
             <div>
                 <div class="list-item-title"><a href="project.html?id=${p.id}">${p.name}</a></div>
                 <div class="list-item-meta">
-                    ${badge('status', p.status)}${badge('priority', p.priority)}
+                    ${projectLate(p) ? overdueBadge(p.due_date, p.due_time) : ''}${badge('status', p.status)}${badge('priority', p.priority)}
                     ${showRole ? html`<span>${humanise(p.role)}</span>` : ''}
                     ${p.due_date ? html`<span aria-hidden="true">·</span><span>Due ${fmtDue(p.due_date, p.due_time)}</span>` : ''}
                 </div>

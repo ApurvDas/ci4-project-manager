@@ -10,7 +10,8 @@ const PAGES = ['login.html', 'register.html', 'dashboard.html', 'projects.html',
     'activity.html?project=1', 'notifications.html'];
 
 const browser = await chromium.launch();
-const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, colorScheme: process.env.SCHEME ?? 'light' });
+const W = Number(process.env.W ?? 390);
+const context = await browser.newContext({ viewport: { width: W, height: 844 }, deviceScaleFactor: W > 800 ? 1 : 2, isMobile: W < 800, hasTouch: W < 800, colorScheme: process.env.SCHEME ?? 'light' });
 const page = await context.newPage();
 
 await page.goto(BASE + 'login.html');

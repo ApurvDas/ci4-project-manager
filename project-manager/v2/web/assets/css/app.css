@@ -1292,6 +1292,18 @@ button, input, select, textarea {
     background: var(--primary-soft);
 }
 
+/* A highlighted row at the top or bottom of a card follows the card's rounded
+   corners instead of poking out square. */
+.card > .list:first-child > .list-item:first-child {
+    border-top-left-radius: var(--radius-lg);
+    border-top-right-radius: var(--radius-lg);
+}
+
+.card > .list:last-child > .list-item:last-child {
+    border-bottom-left-radius: var(--radius-lg);
+    border-bottom-right-radius: var(--radius-lg);
+}
+
 .notification-dot.is-read {
     background: var(--border-strong);
 }
@@ -1702,6 +1714,12 @@ button, input, select, textarea {
         margin-left: auto;
     }
 
+    /* Meta lines wrap here, which left "·" separators dangling at line ends;
+       the flex gap already spaces the items. */
+    .list-item-meta > span[aria-hidden="true"] {
+        display: none;
+    }
+
     /* Tighter stats, so the real content starts sooner. */
     .stat-grid {
         gap: var(--space-2);
@@ -2058,4 +2076,64 @@ input:checked:focus + .switch-left + .switch-right {
 .plus-btn:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 1px;
+}
+
+/* Overdue ------------------------------------------------------------------------ */
+/* Anything past its deadline and unfinished must read as urgent at a glance:
+   a red bar down the left of its row or card, a faint red wash, a solid red
+   "Overdue" badge with a pulsing dot, and a banner on its own page. */
+.list-item.is-late,
+.board-card.is-late {
+    background: var(--danger-soft);
+    box-shadow: inset 3px 0 0 var(--danger);
+}
+
+.board-card.is-late {
+    border-color: var(--danger);
+}
+
+.badge-overdue {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    background: var(--danger);
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.badge-overdue::before {
+    content: "";
+    width: 0.45em;
+    height: 0.45em;
+    border-radius: 50%;
+    background: #fff;
+    animation: overdue-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes overdue-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.25; }
+}
+
+.alert-urgent {
+    background: var(--danger-soft);
+    border-left-color: var(--danger);
+    color: var(--danger);
+    font-size: 0.9rem;
+}
+
+/* Phones: list rows stack, so pin an unread dot to the row's corner rather
+   than letting it drop onto a line of its own. */
+@media (max-width: 720px) {
+    .list-item {
+        position: relative;
+    }
+
+    .list-item > .notification-dot {
+        position: absolute;
+        top: var(--space-4);
+        right: var(--space-4);
+    }
 }

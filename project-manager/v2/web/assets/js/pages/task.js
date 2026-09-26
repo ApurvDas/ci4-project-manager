@@ -1,6 +1,5 @@
 import {
-    page, render, html, call, sb, me, fmtDate, fmtDue, fmtDateTime, isOverdue, badge, idParam, notFound, projectAndRole, can,
-    onSubmit, go, showAlert, errorMessage, ACTIVITY, activityItem,
+    page, render, html, call, sb, me, fmtDate, fmtDue, fmtDateTime, isOverdue, badge, idParam, notFound, projectAndRole, can, onSubmit, go, showAlert, errorMessage, ACTIVITY, activityItem, overdueBanner,
 } from '../app.js';
 
 const projectId = idParam('project');
@@ -45,6 +44,7 @@ render(content, html`
             ${canDelete ? html`<form class="inline-form" data-action="delete-task" data-confirm="Delete this task?"><button type="submit" class="btn btn-danger">Delete</button></form>` : ''}
         </div>
     </div>
+    ${overdue ? overdueBanner('task', task.due_date, task.due_time) : ''}
 
     <div class="panels">
         <div class="stack">

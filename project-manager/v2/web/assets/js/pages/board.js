@@ -1,4 +1,4 @@
-import { page, render, html, call, sb, humanise, fmtShort, isOverdue, idParam, notFound, projectAndRole, can, badge } from '../app.js';
+import { page, render, html, call, sb, humanise, fmtShort, isOverdue, idParam, notFound, projectAndRole, can, badge, taskLate, overdueBadge } from '../app.js';
 import { enableBoard } from '../board.js';
 
 const STATUSES = ['todo', 'in_progress', 'review', 'completed'];
@@ -15,13 +15,13 @@ const tasks = await call(sb.from('tasks')
 const canWrite = can(role, 'member');
 
 const card = (t) => {
-    const overdue = t.status !== 'completed' && isOverdue(t.due_date, t.due_time);
+    const overdue = taskLate(t);
     const people = t.task_assignees.map((a) => a.profile.username);
-    return html`<article class="board-card" data-task-id="${t.id}" ${canWrite ? html`draggable="true"` : ''}>
+    return html`<article class="board-card ${overdue ? 'is-late' : ''}" data-task-id="${t.id}" ${canWrite ? html`draggable="true"` : ''}>
         <a class="board-card-title" href="task.html?project=${id}&id=${t.id}">${t.title}</a>
         <div class="board-card-tags">${t.tags.map((g) => html`<span class="tag"><span class="tag-swatch" style="background: ${g.color}"></span>${g.name}</span>`)}</div>
         <div class="board-card-foot">
-            ${badge('priority', t.priority)}
+            ${overdue ? overdueBadge(t.due_date, t.due_time) : ''}${badge('priority', t.priority)}
             ${t.due_date ? html`<span class="${overdue ? 'is-overdue' : 'text-muted'}">${fmtShort(t.due_date)}${t.due_time ? `, ${t.due_time.slice(0, 5)}` : ''}</span>` : ''}
         </div>
         ${people.length ? html`<div class="board-card-people">${people.map((u) => html`<span class="avatar avatar-sm" title="${u}">${u[0]}</span>`)}</div>` : ''}

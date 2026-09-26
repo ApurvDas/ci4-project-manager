@@ -1,4 +1,4 @@
-import { page, render, html, call, sb, humanise, dueState, badge, progress, today, nowTime } from '../app.js';
+import { page, render, html, call, sb, humanise, dueState, badge, progress, today, nowTime, taskLate, projectLate, overdueBadge } from '../app.js';
 
 const content = await page('Dashboard');
 const d = await call(sb.rpc('dashboard', { p_today: today(), p_now: nowTime() }));
@@ -12,10 +12,10 @@ const tc = d.taskCounts;
 
 const stat = (value, label, cls = '') => html`<div class="stat ${cls}"><div class="stat-value">${value}</div><div class="stat-label">${label}</div></div>`;
 // Your own projects show your role; other projects (seen as a site admin) don't have one.
-const projectList = (projects, showRole) => html`<ul class="list">${projects.map((p) => html`<li class="list-item">
+const projectList = (projects, showRole) => html`<ul class="list">${projects.map((p) => html`<li class="list-item ${projectLate(p) ? 'is-late' : ''}">
     <div>
         <div class="list-item-title"><a href="project.html?id=${p.id}">${p.name}</a></div>
-        <div class="list-item-meta">${badge('status', p.status)}${showRole ? html`<span>${humanise(p.role)}</span>` : ''}</div>
+        <div class="list-item-meta">${projectLate(p) ? overdueBadge(p.due_date, p.due_time) : ''}${badge('status', p.status)}${showRole ? html`<span>${humanise(p.role)}</span>` : ''}</div>
     </div>
     <div class="list-item-aside">${progress(p.progress)}</div>
 </li>`)}</ul>`;
@@ -44,13 +44,13 @@ render(content, html`
             ${d.myTasks.length === 0 ? empty('Nothing on your plate', 'Tasks assigned to you will appear here.') : html`
                 <ul class="list">${d.myTasks.map((t) => {
                     const [dueClass, dueLabel] = dueState(t.due_date, t.due_time);
-                    return html`<li class="list-item">
+                    return html`<li class="list-item ${taskLate(t) ? 'is-late' : ''}">
                         <div>
                             <div class="list-item-title"><a href="task.html?project=${t.project_id}&id=${t.id}">${t.title}</a></div>
                             <div class="list-item-meta"><span>${t.project_name}</span><span aria-hidden="true">·</span><span class="${dueClass}">${dueLabel}</span></div>
                             ${tagsByTask.get(t.id)?.length ? html`<div class="list-item-tags">${tagsByTask.get(t.id).map((g) => html`<span class="tag"><span class="tag-swatch" style="background: ${g.color}"></span>${g.name}</span>`)}</div>` : ''}
                         </div>
-                        <div class="list-item-aside">${badge('priority', t.priority)}${badge('status', t.status)}</div>
+                        <div class="list-item-aside">${taskLate(t) ? overdueBadge(t.due_date, t.due_time) : ''}${badge('priority', t.priority)}${badge('status', t.status)}</div>
                     </li>`;
                 })}</ul>`}
         </section>
