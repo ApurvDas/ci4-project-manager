@@ -1909,3 +1909,14 @@ input:checked:focus + .switch-left + .switch-right {
     padding-inline: var(--space-1);
   }
 }
+
+/* Dark mode: the switch's light frame melts into whatever it sits on
+   (header or sign-in page), leaving just the rocker. */
+:root[data-theme="dark"] .rocker {
+  border-bottom-color: transparent;
+}
+
+:root[data-theme="dark"] .rocker::before {
+  border-color: transparent;
+  background-color: transparent;
+}
