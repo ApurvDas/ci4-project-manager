@@ -1,0 +1,44 @@
+# Publishes project-manager/v2/web to GitHub Pages.
+# Needs two repository variables (Settings → Secrets and variables → Actions → Variables):
+#   SUPABASE_URL       https://<project-ref>.supabase.co
+#   SUPABASE_ANON_KEY  the project's anon (public) key — safe to publish; RLS protects the data
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main, supabase-rewrite]
+    paths: ['project-manager/v2/web/**', '.github/workflows/pages.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Point the site at the production Supabase project
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+        run: |
+          test -n "$SUPABASE_URL" && test -n "$SUPABASE_ANON_KEY" || { echo "::error::Set the SUPABASE_URL and SUPABASE_ANON_KEY repository variables"; exit 1; }
+          printf "export default {\n    url: '%s',\n    anonKey: '%s',\n};\n" "$SUPABASE_URL" "$SUPABASE_ANON_KEY" > project-manager/v2/web/assets/js/config.js
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: project-manager/v2/web
+      - id: deployment
+        uses: actions/deploy-pages@v4

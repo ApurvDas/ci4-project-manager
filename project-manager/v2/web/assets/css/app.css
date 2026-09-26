@@ -1,0 +1,1581 @@
+/* ==========================================================================
+   Project Manager — application stylesheet
+
+   Plain CSS3, no framework. Organised as:
+     0. Typefaces
+     1. Design tokens
+     2. Reset and base elements
+     3. Layout primitives
+     4. Application shell (header, navigation)
+     5. Components (card, button, field, alert, badge, avatar)
+     6. Authentication screens
+     7. Utilities
+     8. Accessibility and polish
+   ========================================================================== */
+
+/* 0. Typefaces =============================================================
+
+   Three self-hosted Nerd Fonts, all monospaced — the interface is deliberately
+   a terminal-flavoured one. Nothing is requested from a third party.
+
+   Built from the originals by fonts/build.py, which subsets away the thousands
+   of Powerline and Devicon glyphs this application never renders: 26 MB of
+   .ttf becomes about 115 KB of .woff2.
+
+   Each family is used for one role, chosen around the weights it actually
+   ships:
+
+     Source Code Pro   body and UI   the only one with a 600, which the
+                                     interface needs in twelve places
+     Iosevka Term Slab headings      slab serif for contrast; needs 700 only,
+                                     so its missing 600 never matters
+     Terminess         code and diffs the two monospace slots, both at 400
+
+   font-display: swap means text paints immediately in the fallback and
+   re-renders when the font arrives, rather than being invisible.
+   ========================================================================== */
+
+/* Source Code Pro — body and UI */
+@font-face {
+    font-family: "Source Code Pro Web";
+    src: url("../fonts/source-code-pro-400.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Source Code Pro Web";
+    src: url("../fonts/source-code-pro-500.woff2") format("woff2");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Source Code Pro Web";
+    src: url("../fonts/source-code-pro-600.woff2") format("woff2");
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Source Code Pro Web";
+    src: url("../fonts/source-code-pro-700.woff2") format("woff2");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Iosevka Term Slab — headings */
+@font-face {
+    font-family: "Iosevka Term Slab Web";
+    src: url("../fonts/iosevka-term-slab-700.woff2") format("woff2");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Terminess — code, value diffs and the verification code input */
+@font-face {
+    font-family: "Terminess Web";
+    src: url("../fonts/terminess-400.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* 1. Design tokens ========================================================= */
+
+:root {
+    /* Achromatic base. Colour is reserved for meaning — a status, a warning, a
+       destructive action — so anything coloured on screen is telling you
+       something rather than decorating. */
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --surface-2: #f2f2f2;
+    --border: #eaeaea;
+    --border-strong: #d4d4d4;
+
+    --text: #000000;
+    --text-muted: #666666;
+    --text-subtle: #8f8f8f;
+
+    /* The accent is black, not a brand hue: primary buttons, the brand mark and
+       progress fills read as structure rather than decoration. */
+    --primary: #000000;
+    --primary-hover: #383838;
+    --primary-soft: #f2f2f2;
+    --on-primary: #ffffff;
+
+    /* Links keep a blue, because an achromatic link inside body text is
+       indistinguishable from the text around it. */
+    --link: #0070f3;
+    --focus: #0070f3;
+
+    --danger: #e5484d;
+    --danger-soft: #fff0f0;
+    --success: #45a557;
+    --success-soft: #f1fdf4;
+    --warning: #f5a623;
+    --warning-soft: #fff9ed;
+    --info: #0070f3;
+    --info-soft: #f0f7ff;
+
+    --radius-sm: 6px;
+    --radius: 10px;
+    --radius-lg: 14px;
+
+    --shadow-sm: 0 1px 2px rgb(16 24 40 / 6%);
+    --shadow: 0 4px 16px rgb(16 24 40 / 8%);
+    --shadow-lg: 0 12px 40px rgb(16 24 40 / 12%);
+
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+    --space-7: 48px;
+
+    /* Every role is monospaced, so each stack falls back to the generic
+       monospace family rather than a proportional one — a fallback should
+       change the typeface, not the whole layout. */
+    --font: "Source Code Pro Web", ui-monospace, SFMono-Regular, Consolas, monospace;
+    --font-display: "Iosevka Term Slab Web", "Source Code Pro Web", ui-monospace, Consolas, monospace;
+    --font-mono: "Terminess Web", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    --header-height: 60px;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        /* True black ground, with surfaces stepping up in near-neutral greys.
+           The inversion is deliberate: in dark mode the accent becomes white,
+           so a primary button stays the highest-contrast thing on screen. */
+        --bg: #000000;
+        --surface: #0a0a0a;
+        --surface-2: #171717;
+        --border: #262626;
+        --border-strong: #404040;
+
+        --text: #ededed;
+        --text-muted: #a1a1a1;
+        --text-subtle: #737373;
+
+        --primary: #ffffff;
+        --primary-hover: #cccccc;
+        --primary-soft: #1a1a1a;
+        --on-primary: #000000;
+
+        --link: #3291ff;
+        --focus: #3291ff;
+
+        --danger: #ff6369;
+        --danger-soft: #2a1215;
+        --success: #62c073;
+        --success-soft: #0f2417;
+        --warning: #f7b955;
+        --warning-soft: #2a1f0d;
+        --info: #3291ff;
+        --info-soft: #0d1f33;
+
+        --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
+        --shadow: 0 4px 16px rgb(0 0 0 / 45%);
+        --shadow-lg: 0 12px 40px rgb(0 0 0 / 55%);
+    }
+}
+
+/* 2. Reset and base ======================================================== */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+* {
+    margin: 0;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    /* 14px rather than 15: a monospaced face sets wider than a proportional
+       one at the same size, and 15px cost too much density in the task lists
+       and Kanban cards. */
+    font-size: 14px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    /* Source Code Pro is a coding face with -> and != ligatures. Welcome in a
+       code block, wrong in a task title like "Fix != comparison", so they are
+       switched off everywhere except the .font-mono slots below. */
+    font-variant-ligatures: none;
+    font-feature-settings: "liga" 0, "calt" 0;
+}
+
+h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    line-height: 1.25;
+    /* 700 rather than 650: the supplied faces are static, so a non-standard
+       weight would be snapped by the browser anyway. */
+    font-weight: 700;
+    /* Negative tracking suited the previous proportional face. Monospace is
+       already evenly spaced and reads cramped when pulled tighter. */
+    letter-spacing: 0;
+}
+
+h1 { font-size: 1.6rem; }
+h2 { font-size: 1.25rem; }
+h3 { font-size: 1.05rem; }
+
+a {
+    color: var(--link);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+img, svg {
+    display: block;
+    max-width: 100%;
+}
+
+button, input, select, textarea {
+    font: inherit;
+    color: inherit;
+}
+
+:focus-visible {
+    /* Two rings: an inner one in the surface colour holding the outer ring
+       clear of the control, so focus is legible against a card, a coloured
+       button or the page background alike. */
+    outline: none;
+    box-shadow:
+        0 0 0 2px var(--surface),
+        0 0 0 4px var(--focus);
+    border-radius: var(--radius-sm);
+}
+
+/* Windows high-contrast mode ignores box-shadow, so keep a real outline there. */
+@media (forced-colors: active) {
+    :focus-visible {
+        outline: 2px solid Highlight;
+        outline-offset: 2px;
+    }
+}
+
+/* 3. Layout primitives ===================================================== */
+
+.container {
+    width: 100%;
+    max-width: 1140px;
+    margin-inline: auto;
+    padding-inline: var(--space-5);
+}
+
+.stack > * + * {
+    margin-top: var(--space-4);
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.row-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+}
+
+/* 4. Application shell ===================================================== */
+
+.app-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    height: var(--header-height);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+}
+
+.app-header > .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    height: 100%;
+}
+
+.brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--text);
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+.brand:hover {
+    text-decoration: none;
+}
+
+.brand-mark {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--primary);
+    color: var(--on-primary);
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.app-nav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    margin-left: var(--space-5);
+}
+
+.app-nav a {
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.app-nav a:hover {
+    background: var(--surface-2);
+    color: var(--text);
+    text-decoration: none;
+}
+
+.app-nav a[aria-current="page"] {
+    background: var(--primary-soft);
+    color: var(--primary);
+}
+
+.app-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-left: auto;
+}
+
+.app-main {
+    padding-block: var(--space-6) var(--space-7);
+}
+
+.app-footer {
+    padding-block: var(--space-5);
+    border-top: 1px solid var(--border);
+    color: var(--text-subtle);
+    font-size: 0.85rem;
+}
+
+/* 5. Components ============================================================ */
+
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.card-body {
+    padding: var(--space-5);
+}
+
+.card-title {
+    margin-bottom: var(--space-1);
+    font-size: 1.3rem;
+}
+
+.card-subtitle {
+    color: var(--text-muted);
+    font-size: 0.925rem;
+}
+
+/* Buttons ------------------------------------------------------------------ */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: 0 var(--space-4);
+    height: 40px;
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 0.925rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 120ms ease, border-color 120ms ease, opacity 120ms ease;
+}
+
+.btn:hover {
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: var(--on-primary);
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+}
+
+.btn-secondary {
+    background: var(--surface);
+    border-color: var(--border-strong);
+    color: var(--text);
+}
+
+.btn-secondary:hover {
+    background: var(--surface-2);
+}
+
+.btn-ghost {
+    background: transparent;
+    color: var(--text-muted);
+}
+
+.btn-ghost:hover {
+    background: var(--surface-2);
+    color: var(--text);
+}
+
+.btn-block {
+    width: 100%;
+}
+
+.btn:disabled,
+.btn[aria-busy="true"] {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* Form fields -------------------------------------------------------------- */
+
+.field + .field {
+    margin-top: var(--space-4);
+}
+
+.field label {
+    display: block;
+    margin-bottom: var(--space-2);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.field input[type="text"],
+.field input[type="email"],
+.field input[type="password"],
+.field input[type="date"],
+.field input[type="time"],
+.field input[type="number"],
+.field select,
+.field textarea {
+    width: 100%;
+    padding: 0 var(--space-3);
+    height: 42px;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.field textarea {
+    height: auto;
+    min-height: 110px;
+    padding-block: var(--space-3);
+    resize: vertical;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+    color: var(--text-subtle);
+}
+
+.field .hint {
+    margin-top: var(--space-2);
+    color: var(--text-subtle);
+    font-size: 0.8rem;
+}
+
+/* Invalid state is applied by JS on blur and by PHP on redisplay. */
+.field.is-invalid input,
+.field.is-invalid select,
+.field.is-invalid textarea {
+    border-color: var(--danger);
+}
+
+.field.is-invalid input:focus {
+    box-shadow: 0 0 0 3px var(--danger-soft);
+}
+
+.field-error {
+    display: none;
+    margin-top: var(--space-2);
+    color: var(--danger);
+    font-size: 0.8rem;
+}
+
+.field.is-invalid .field-error {
+    display: block;
+}
+
+.field-with-toggle {
+    position: relative;
+}
+
+.field-with-toggle input {
+    padding-right: 68px;
+}
+
+.password-toggle {
+    position: absolute;
+    top: 50%;
+    right: var(--space-2);
+    transform: translateY(-50%);
+    padding: var(--space-1) var(--space-2);
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.password-toggle:hover {
+    background: var(--surface-2);
+    color: var(--text);
+}
+
+.checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.checkbox input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary);
+    cursor: pointer;
+}
+
+/* Alerts -------------------------------------------------------------------- */
+
+.alert {
+    padding: var(--space-2) var(--space-3);
+    border: 0;
+    border-left: 2px solid transparent;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    font-size: 0.82rem;
+}
+
+/* Page messages sit above the heading; keep them clear of it. */
+#alerts:not(:empty) {
+    margin-bottom: var(--space-4);
+}
+
+.alert + .alert {
+    margin-top: var(--space-3);
+}
+
+.alert ul {
+    margin: 0;
+    padding-left: var(--space-5);
+}
+
+.alert-error {
+    background: var(--danger-soft);
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.alert-success {
+    background: var(--success-soft);
+    border-color: var(--success);
+    color: var(--success);
+}
+
+.alert-info {
+    background: var(--info-soft);
+    border-color: var(--info);
+    color: var(--info);
+}
+
+.alert-warning {
+    background: var(--warning-soft);
+    border-color: var(--warning);
+    color: var(--warning);
+}
+
+/* Badges and avatars --------------------------------------------------------- */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px var(--space-2);
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.avatar {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.user-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* Empty state ---------------------------------------------------------------- */
+
+.empty-state {
+    padding: var(--space-7) var(--space-5);
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.empty-state h2 {
+    margin-bottom: var(--space-2);
+    color: var(--text);
+}
+
+/* Page header ---------------------------------------------------------------- */
+
+.page-header {
+    margin-bottom: var(--space-5);
+}
+
+.page-header p {
+    margin-top: var(--space-1);
+    color: var(--text-muted);
+}
+
+/* Statistic tiles ------------------------------------------------------------ */
+
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+}
+
+.stat {
+    padding: var(--space-4);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: 0;
+}
+
+.stat-label {
+    margin-top: var(--space-1);
+    color: var(--text-muted);
+    font-size: 0.825rem;
+}
+
+/* Draws the eye to figures that need action rather than to every tile. */
+.stat.is-alert .stat-value { color: var(--danger); }
+.stat.is-warn .stat-value { color: var(--warning); }
+
+/* Two-column panel layout ----------------------------------------------------- */
+
+.panels {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    gap: var(--space-5);
+    align-items: start;
+}
+
+.panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--border);
+}
+
+.panel-head h2 {
+    font-size: 1rem;
+}
+
+/* Lists ----------------------------------------------------------------------- */
+
+.list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-5);
+}
+
+.list-item + .list-item {
+    border-top: 1px solid var(--border);
+}
+
+.list-item-title {
+    font-weight: 600;
+}
+
+.list-item-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-1);
+    color: var(--text-muted);
+    font-size: 0.825rem;
+}
+
+.list-item-aside {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-shrink: 0;
+}
+
+.is-overdue {
+    color: var(--danger);
+    font-weight: 600;
+}
+
+.is-due-today {
+    color: var(--warning);
+    font-weight: 600;
+}
+
+/* Progress -------------------------------------------------------------------- */
+
+.progress {
+    width: 120px;
+    height: 6px;
+    background: var(--surface-2);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 999px;
+}
+
+/* Status and priority badges --------------------------------------------------- */
+
+.badge-status-todo,
+.badge-priority-low {
+    background: var(--surface-2);
+    color: var(--text-muted);
+}
+
+.badge-status-in_progress,
+.badge-priority-medium,
+.badge-status-planning {
+    background: var(--info-soft);
+    color: var(--info);
+}
+
+.badge-status-review,
+.badge-priority-high,
+.badge-status-on_hold {
+    background: var(--warning-soft);
+    color: var(--warning);
+}
+
+.badge-status-completed,
+.badge-status-active {
+    background: var(--success-soft);
+    color: var(--success);
+}
+
+.badge-priority-critical {
+    background: var(--danger-soft);
+    color: var(--danger);
+}
+
+.badge-status-archived {
+    background: var(--surface-2);
+    color: var(--text-subtle);
+}
+
+/* Toolbar and page actions ------------------------------------------------------ */
+
+.page-header-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-5);
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+/* Forms laid out in two columns ---------------------------------------------------- */
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+}
+
+.form-grid .field {
+    margin-top: 0;
+}
+
+.form-grid .field + .field {
+    margin-top: 0;
+}
+
+.form-full {
+    grid-column: 1 / -1;
+}
+
+.form-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--border);
+}
+
+/* Definition-style metadata --------------------------------------------------------- */
+
+.meta-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: var(--space-4);
+}
+
+.meta-list dt {
+    color: var(--text-subtle);
+    font-size: 0.775rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.meta-list dd {
+    margin: var(--space-1) 0 0;
+    font-weight: 600;
+}
+
+/* Activity feed ---------------------------------------------------------------------- */
+
+.activity-item {
+    display: flex;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-5);
+}
+
+.activity-item + .activity-item {
+    border-top: 1px solid var(--border);
+}
+
+.activity-body {
+    font-size: 0.9rem;
+}
+
+.activity-time {
+    color: var(--text-subtle);
+    font-size: 0.775rem;
+}
+
+.activity-diff {
+    margin-top: var(--space-1);
+    /* Source Code Pro rather than the Terminess mono face. Terminess is an
+       outline conversion of a bitmap terminal font: crisp at the pixel sizes it
+       was drawn for, thin and blurry at the 10.5px this block used. The body
+       face is monospaced too, so the columns still line up. */
+    font-family: var(--font);
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+}
+
+/* Inline forms inside list rows -------------------------------------------------------- */
+
+.inline-form {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.inline-form select {
+    height: 32px;
+    padding: 0 var(--space-2);
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    font-size: 0.825rem;
+}
+
+.btn-sm {
+    height: 32px;
+    padding: 0 var(--space-3);
+    font-size: 0.825rem;
+}
+
+.btn-danger {
+    background: transparent;
+    color: var(--danger);
+}
+
+.btn-danger:hover {
+    background: var(--danger-soft);
+}
+
+/* Tag chips ------------------------------------------------------------------------------ */
+
+.tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: var(--space-4) var(--space-5);
+}
+
+.tag {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 2px var(--space-3);
+    border-radius: 999px;
+    background: var(--surface-2);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.tag-swatch {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+/* Checkbox grids in forms ------------------------------------------------------------ */
+
+.check-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: var(--space-2) var(--space-4);
+}
+
+/* Checklists --------------------------------------------------------------------------- */
+
+.checklist {
+    padding: var(--space-4) var(--space-5);
+}
+
+.checklist + .checklist {
+    border-top: 1px solid var(--border);
+}
+
+.checklist-title {
+    margin-bottom: var(--space-3);
+    font-size: 0.95rem;
+}
+
+.checklist-items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-1) 0;
+}
+
+.checklist-item.is-done .checklist-text {
+    color: var(--text-subtle);
+    text-decoration: line-through;
+}
+
+.checklist-box {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    padding: 0;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--primary);
+    font-size: 0.75rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.checklist-box:hover {
+    border-color: var(--primary);
+}
+
+.checklist-add {
+    display: flex;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+}
+
+.checklist-add input {
+    flex: 1;
+    height: 32px;
+    padding: 0 var(--space-3);
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+}
+
+/* Kanban board -------------------------------------------------------------------------- */
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-4);
+    align-items: start;
+}
+
+.board-column {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+}
+
+.board-column-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border);
+}
+
+.board-column-head h2 {
+    font-size: 0.9rem;
+}
+
+.board-dropzone {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    /* Keeps an empty column a valid drop target. */
+    min-height: 90px;
+    padding: var(--space-3);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    transition: background-color 120ms ease;
+}
+
+.board-dropzone.is-over {
+    background: var(--primary-soft);
+}
+
+.board-card {
+    padding: var(--space-3);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    cursor: grab;
+}
+
+.board-card.is-dragging {
+    opacity: 0.45;
+    cursor: grabbing;
+}
+
+.board-card-title {
+    display: block;
+    color: var(--text);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.board-card-title:hover {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.board-card-tags,
+.board-card-foot,
+.board-card-people {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+    font-size: 0.775rem;
+}
+
+.avatar-sm {
+    width: 22px;
+    height: 22px;
+    font-size: 0.65rem;
+}
+
+.board-status {
+    margin-top: var(--space-4);
+    color: var(--text-subtle);
+    font-size: 0.825rem;
+    min-height: 1.2em;
+}
+
+.board-status.is-error {
+    color: var(--danger);
+}
+
+/* Notifications ------------------------------------------------------------------------- */
+
+.notification-link {
+    position: relative;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.notification-link:hover {
+    background: var(--surface-2);
+    color: var(--text);
+    text-decoration: none;
+}
+
+.notification-count {
+    display: inline-grid;
+    place-items: center;
+    min-width: 18px;
+    height: 18px;
+    margin-left: var(--space-1);
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--danger);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.list-item.is-unread {
+    background: var(--primary-soft);
+}
+
+.notification-dot.is-read {
+    background: var(--border-strong);
+}
+
+/* Unread notification marker ---------------------------------------------------- */
+
+.notification-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--primary);
+    flex-shrink: 0;
+}
+
+/* 6. Authentication screens ================================================= */
+
+.auth-shell {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: var(--space-5);
+}
+
+.auth-brand {
+    display: flex;
+    justify-content: center;
+    padding-block: var(--space-6) var(--space-5);
+}
+
+.auth-body {
+    display: flex;
+    flex: 1;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+}
+
+.auth-card .card-body {
+    padding: var(--space-6);
+}
+
+.auth-header {
+    margin-bottom: var(--space-5);
+}
+
+.auth-header h1 {
+    font-size: 1.4rem;
+}
+
+.auth-header p {
+    margin-top: var(--space-1);
+    color: var(--text-muted);
+    font-size: 0.925rem;
+}
+
+.auth-form {
+    margin-top: var(--space-5);
+}
+
+.auth-form .btn-block {
+    margin-top: var(--space-5);
+}
+
+.auth-meta {
+    margin-top: var(--space-5);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.auth-meta + .auth-meta {
+    margin-top: var(--space-2);
+    padding-top: 0;
+    border-top: 0;
+}
+
+.auth-footer {
+    padding-top: var(--space-5);
+    color: var(--text-subtle);
+    font-size: 0.825rem;
+    text-align: center;
+}
+
+.token-input input {
+    font-family: var(--font-mono);
+    font-variant-ligatures: normal;
+    font-feature-settings: normal;
+    font-size: 1.4rem;
+    letter-spacing: 0.2em;
+    text-align: center;
+}
+
+/* 7. Utilities ============================================================== */
+
+.text-muted { color: var(--text-muted); }
+.text-center { text-align: center; }
+.mt-0 { margin-top: 0; }
+.mt-3 { margin-top: var(--space-3); }
+.mt-4 { margin-top: var(--space-4); }
+.mt-5 { margin-top: var(--space-5); }
+.mb-4 { margin-bottom: var(--space-4); }
+/* User text rendered with textContent keeps its line breaks (was nl2br). */
+.pre-line { white-space: pre-line; }
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Responsive ---------------------------------------------------------------- */
+
+@media (max-width: 980px) {
+    .stat-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .panels {
+        grid-template-columns: 1fr;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Columns become a horizontally scrolling strip rather than shrinking to
+       an unusable width. */
+    .board {
+        grid-template-columns: repeat(4, minmax(230px, 1fr));
+        overflow-x: auto;
+        padding-bottom: var(--space-3);
+    }
+}
+
+@media (max-width: 720px) {
+    .container {
+        padding-inline: var(--space-4);
+    }
+
+    .list-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-2);
+    }
+
+    .progress {
+        width: 100%;
+    }
+
+    .app-nav {
+        margin-left: var(--space-2);
+        gap: 0;
+    }
+
+    .app-nav a {
+        padding-inline: var(--space-2);
+        font-size: 0.9rem;
+    }
+
+    .auth-card .card-body {
+        padding: var(--space-5);
+    }
+
+    /* Hide only the username, never the avatar — which is also a span. */
+    .user-chip > span:not(.avatar) {
+        display: none;
+    }
+}
+
+/* Tag delete control ---------------------------------------------------------- */
+
+.tag-remove {
+    padding: 0 2px;
+    border: 0;
+    background: transparent;
+    color: var(--text-subtle);
+    font-size: 0.9rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.tag-remove:hover {
+    color: var(--danger);
+}
+
+.field input[type="color"] {
+    width: 100%;
+    height: 42px;
+    padding: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    cursor: pointer;
+}
+
+/* Pagination ------------------------------------------------------------------- */
+
+.pagination {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.pagination li a,
+.pagination li span {
+    display: inline-flex;
+    align-items: center;
+    height: 34px;
+    padding: 0 var(--space-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.pagination li a:hover {
+    background: var(--surface-2);
+    color: var(--text);
+    text-decoration: none;
+}
+
+.pagination li.active span {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--on-primary);
+    font-weight: 600;
+}
+
+.pagination li.disabled span {
+    opacity: 0.5;
+}
+
+/* ==========================================================================
+   8. Accessibility and polish
+   ========================================================================== */
+
+/* Skip link: hidden until focused, then pinned to the top-left.
+   Fixed rather than absolute so it is unaffected by page scroll. */
+.skip-link {
+    position: fixed;
+    top: -60px;
+    left: var(--space-3);
+    z-index: 100;
+    padding: var(--space-2) var(--space-4);
+    background: var(--primary);
+    color: var(--on-primary);
+    border-radius: 0 0 var(--radius) var(--radius);
+    font-weight: 600;
+    transition: top 120ms ease;
+}
+
+.skip-link:focus {
+    top: 0;
+    text-decoration: none;
+}
+
+/* The main region is focusable only as a skip-link target, so it must not draw
+   a focus ring when jumped to. */
+#main-content:focus {
+    outline: none;
+}
+
+/* Respect a reduced-motion preference: transitions are decoration here, and
+   the drag-and-drop board is the one place motion is meaningful. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Touch targets: keep small controls tappable on a phone. */
+@media (pointer: coarse) {
+    .btn-sm,
+    .checklist-box,
+    .tag-remove {
+        min-height: 36px;
+        min-width: 36px;
+    }
+}
+
+/* Header on small screens: let the navigation wrap under the brand rather than
+   overflow, and drop the header's fixed height so it can grow. */
+@media (max-width: 620px) {
+    .app-header {
+        position: static;
+        height: auto;
+    }
+
+    .app-header > .container {
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        padding-block: var(--space-3);
+    }
+
+    .app-nav {
+        order: 3;
+        width: 100%;
+        margin-left: 0;
+        gap: var(--space-1);
+    }
+
+    .app-header-actions {
+        gap: var(--space-2);
+    }
+
+    .page-header-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .toolbar .btn {
+        flex: 1;
+    }
+}
+
+/* Long words and pasted URLs must not push a card wider than its column. */
+.list-item-title,
+.board-card-title,
+.activity-body {
+    overflow-wrap: anywhere;
+}
+
+/* Tables and wide blocks scroll inside themselves rather than the page. */
+.scroll-x {
+    overflow-x: auto;
+}
