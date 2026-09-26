@@ -156,6 +156,35 @@ export function idParam(name) {
 
 export let me = null; // { id, username } of the signed-in user
 
+// Light/dark rocker switch (checked = dark). The <head> script has already set
+// data-theme; this only renders the switch, flips it, and remembers the choice.
+const themeSwitch = (extra = '') => html`
+    <label class="rocker rocker-header ${extra}" title="Switch light / dark mode">
+        <input type="checkbox" data-theme-switch aria-label="Dark mode"
+               ${document.documentElement.dataset.theme === 'dark' ? 'checked' : ''}>
+        <span class="switch-left" aria-hidden="true">☾</span>
+        <span class="switch-right" aria-hidden="true">☀</span>
+    </label>`;
+
+function bindThemeSwitch() {
+    const input = document.querySelector('[data-theme-switch]');
+    const apply = (theme) => {
+        document.documentElement.dataset.theme = theme;
+        input.checked = theme === 'dark';
+    };
+    input.addEventListener('change', () => {
+        const theme = input.checked ? 'dark' : 'light';
+        apply(theme);
+        try { localStorage.setItem('theme', theme); } catch { /* private mode: still switches */ }
+    });
+    // Until the user picks, keep following the system setting.
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        let saved = null;
+        try { saved = localStorage.getItem('theme'); } catch { /* ignore */ }
+        if (!saved) apply(e.matches ? 'dark' : 'light');
+    });
+}
+
 const brand = html`<a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">PM</span><span>Project Manager</span></a>`;
 const footer = () => html`&copy; ${new Date().getFullYear()} Project Manager`;
 
@@ -194,7 +223,7 @@ export async function page(title, { auth = true } = {}) {
 
     document.body.innerHTML = show(html`
         <a class="skip-link" href="#main-content">Skip to main content</a>
-        <header class="app-header"><div class="container">${brand}${nav}<div class="app-header-actions">${actions}</div></div></header>
+        <header class="app-header"><div class="container">${brand}${nav}${themeSwitch()}<div class="app-header-actions">${actions}</div></div></header>
         <main class="app-main" id="main-content" tabindex="-1">
             <div class="container">
                 <div id="alerts" aria-live="polite" aria-atomic="true"></div>
@@ -207,6 +236,7 @@ export async function page(title, { auth = true } = {}) {
         await sb.auth.signOut();
         go('login.html', 'You have been signed out.');
     });
+    bindThemeSwitch();
     showFlash();
     return document.getElementById('content');
 }
@@ -217,6 +247,7 @@ export function authPage(title) {
     document.body.innerHTML = show(html`
         <a class="skip-link" href="#main-content">Skip to main content</a>
         <div class="auth-shell">
+            ${themeSwitch('auth-theme')}
             <div class="auth-brand">${brand}</div>
             <main class="auth-body" id="main-content" tabindex="-1">
                 <div class="auth-card"><div class="card-body">
@@ -226,6 +257,7 @@ export function authPage(title) {
             </main>
             <footer class="auth-footer">${footer()}</footer>
         </div>`);
+    bindThemeSwitch();
     showFlash();
     return document.getElementById('content');
 }

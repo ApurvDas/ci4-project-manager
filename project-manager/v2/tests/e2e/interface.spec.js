@@ -185,6 +185,35 @@ test.describe('Accessibility', () => {
     });
 });
 
+test.describe('Theme switch', () => {
+    test('flips between light and dark, and remembers the choice', async ({ page }) => {
+        await page.emulateMedia({ colorScheme: 'light' });
+        await signIn(page, 'admin');
+        await page.goto('/dashboard.html');
+        const root = page.locator('html');
+        await expect(root).toHaveAttribute('data-theme', 'light');
+
+        await page.locator('.rocker .switch-left').click();
+        await expect(root).toHaveAttribute('data-theme', 'dark');
+        const background = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+        expect(background).toBe('rgb(0, 0, 0)');
+
+        await page.reload();
+        await expect(root).toHaveAttribute('data-theme', 'dark');
+        await expect(page.locator('[data-theme-switch]')).toBeChecked();
+
+        await page.locator('.rocker .switch-right').click();
+        await expect(root).toHaveAttribute('data-theme', 'light');
+    });
+
+    test('is on the sign-in page too', async ({ page }) => {
+        await page.goto('/login.html');
+        await page.evaluate(() => localStorage.clear());
+        await page.goto('/login.html');
+        await expect(page.locator('.rocker [data-theme-switch]')).toHaveCount(1);
+    });
+});
+
 test.describe('Typography and palette', () => {
     test('all three self-hosted fonts load from our own origin', async ({ page }) => {
         const fontRequests = [];

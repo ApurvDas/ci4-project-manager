@@ -149,8 +149,11 @@
     --header-height: 60px;
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
+/* Dark theme. The <head> of every page sets data-theme before first paint
+   (saved choice, else the system preference); the top-bar switch flips it. */
+:root[data-theme="dark"] {
+        color-scheme: dark;
+
         /* True black ground, with surfaces stepping up in near-neutral greys.
            The inversion is deliberate: in dark mode the accent becomes white,
            so a primary button stays the highest-contrast thing on screen. */
@@ -184,7 +187,6 @@
         --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
         --shadow: 0 4px 16px rgb(0 0 0 / 45%);
         --shadow-lg: 0 12px 40px rgb(0 0 0 / 55%);
-    }
 }
 
 /* 2. Reset and base ======================================================== */
@@ -1657,6 +1659,26 @@ button, input, select, textarea {
         display: none;
     }
 
+    .app-header-actions {
+        white-space: nowrap;
+    }
+
+    /* Row 1: brand + account links. Row 2: tabs, with the theme switch at the
+       right end where there is room. */
+    .app-nav {
+        width: auto;
+        flex: 1 1 auto;
+    }
+
+    .app-header > .container > .rocker-header {
+        order: 4;
+        font-size: 7.5px;
+    }
+
+    .app-header .rocker-header + .app-header-actions {
+        margin-left: auto;
+    }
+
     /* Tighter stats, so the real content starts sooner. */
     .stat-grid {
         gap: var(--space-2);
@@ -1702,4 +1724,188 @@ button, input, select, textarea {
 /* Tables and wide blocks scroll inside themselves rather than the page. */
 .scroll-x {
     overflow-x: auto;
+}
+
+/* Theme switch ----------------------------------------------------------------- */
+/* Rocker switch from Uiverse.io by bandirevanth. Left (☾) = dark, right (☀) = light;
+   the checkbox is checked in dark mode. */
+.rocker {
+  display: inline-block;
+  position: relative;
+  /* All sizes are in em, so font-size sets the size of the switch. */
+  font-size: 2em;
+  font-weight: bold;
+  text-align: center;
+  text-transform: uppercase;
+  color: #888;
+  width: 7em;
+  height: 4em;
+  overflow: hidden;
+  border-bottom: 0.5em solid #eee;
+}
+
+.rocker-small {
+  font-size: 0.75em;
+  margin: 1em;
+}
+
+/* Sized to sit in the top bar, just left of the account links. */
+.rocker-header {
+  flex-shrink: 0;
+  font-size: 10px;
+  margin: 0;
+  line-height: 1;
+}
+
+.app-header > .container > .rocker-header {
+  margin-left: auto;
+}
+
+.rocker-header + .app-header-actions {
+  margin-left: var(--space-4);
+}
+
+.rocker::before {
+  content: "";
+  position: absolute;
+  top: 0.5em;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #999;
+  border: 0.5em solid #eee;
+  border-bottom: 0;
+}
+
+.rocker input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch-left,
+.switch-right {
+  cursor: pointer;
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.5em;
+  width: 3em;
+  transition: 0.2s;
+  user-select: none;
+}
+
+.switch-left {
+  height: 2.4em;
+  width: 2.75em;
+  left: 0.85em;
+  bottom: 0.4em;
+  background-color: #ddd;
+  transform: rotate(15deg) skewX(15deg);
+}
+
+.switch-right {
+  right: 0.5em;
+  bottom: 0;
+  background-color: #bd5757;
+  color: #fff;
+}
+
+.switch-left::before,
+.switch-right::before {
+  content: "";
+  position: absolute;
+  width: 0.4em;
+  height: 2.45em;
+  bottom: -0.45em;
+  background-color: #ccc;
+  transform: skewY(-65deg);
+}
+
+.switch-left::before {
+  left: -0.4em;
+}
+
+.switch-right::before {
+  right: -0.375em;
+  background-color: transparent;
+  transform: skewY(65deg);
+}
+
+input:checked + .switch-left {
+  background-color: #0084d0;
+  color: #fff;
+  bottom: 0px;
+  left: 0.5em;
+  height: 2.5em;
+  width: 3em;
+  transform: rotate(0deg) skewX(0deg);
+}
+
+input:checked + .switch-left::before {
+  background-color: transparent;
+  width: 3.0833em;
+}
+
+input:checked + .switch-left + .switch-right {
+  background-color: #ddd;
+  color: #888;
+  bottom: 0.4em;
+  right: 0.8em;
+  height: 2.4em;
+  width: 2.75em;
+  transform: rotate(-15deg) skewX(-15deg);
+}
+
+input:checked + .switch-left + .switch-right::before {
+  background-color: #ccc;
+}
+
+/* Keyboard users */
+input:focus + .switch-left {
+  color: #333;
+}
+
+input:checked:focus + .switch-left {
+  color: #fff;
+}
+
+input:focus + .switch-left + .switch-right {
+  color: #fff;
+}
+
+input:checked:focus + .switch-left + .switch-right {
+  color: #333;
+}
+
+/* The input is invisible, so show keyboard focus on the switch itself. */
+.rocker:has(input:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* On the sign-in pages the brand is centred, so the switch sits top-right. */
+.auth-shell {
+  position: relative;
+}
+
+.auth-theme {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+}
+
+/* Very small phones (≤380px): tighten the account links so they stay beside
+   the PM mark even with an unread badge. */
+@media (max-width: 380px) {
+  .app-header-actions {
+    gap: var(--space-1);
+    font-size: 0.85rem;
+  }
+
+  .app-header-actions .btn,
+  .app-header-actions .notification-link {
+    padding-inline: var(--space-1);
+  }
 }
