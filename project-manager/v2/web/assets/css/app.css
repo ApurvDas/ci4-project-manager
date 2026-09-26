@@ -2308,3 +2308,96 @@ input:checked:focus + .switch-left + .switch-right {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
+
+/* Top-bar pills with rolling letters ---------------------------------------------- */
+/* From Uiverse.io by KINGFRESS, adapted: every top-bar button is a rounded
+   pill in the site's greys, the current page filled with the primary colour
+   (light and dark via tokens), sized to its label. On hover or keyboard focus
+   each letter rolls down and out while its twin rolls in from above, staggered
+   for any label length (the original handled six letters at a fixed width).
+   Selectors are prefixed with .app-header so they win over the older
+   .app-nav a / .notification-link rules. */
+.app-header .top-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 36px;
+  padding: 0 var(--space-4);
+  border: 0;
+  border-radius: 2rem;
+  background-color: var(--surface-2);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.app-header .top-btn:hover,
+.app-header .top-btn:focus-visible {
+  background-color: var(--border);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.app-header .top-btn[aria-current="page"],
+.app-header .top-btn--primary {
+  background-color: var(--primary);
+  color: var(--on-primary);
+}
+
+.app-header .top-btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.roll {
+  display: inline-grid;
+  overflow: hidden;
+  height: 1.2em;
+  line-height: 1.2em;
+}
+
+.roll__row {
+  grid-area: 1 / 1;
+  display: flex;
+  white-space: pre;
+}
+
+.roll__row > span {
+  display: inline-block;
+  transition: transform calc(0.2s + var(--i) * 0.05s);
+}
+
+.roll__row--in > span {
+  transform: translateY(-1.2em);
+}
+
+.top-btn:hover .roll__row > span,
+.top-btn:focus-visible .roll__row > span {
+  transform: translateY(1.2em);
+}
+
+.top-btn:hover .roll__row--in > span,
+.top-btn:focus-visible .roll__row--in > span {
+  transform: translateY(0);
+}
+
+/* Phones: slimmer pills so the two header rows still fit at 360px. */
+@media (max-width: 620px) {
+  .app-header .top-btn {
+    height: 32px;
+    padding: 0 var(--space-3);
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .app-header .top-btn {
+    padding: 0 var(--space-2);
+  }
+}

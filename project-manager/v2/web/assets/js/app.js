@@ -232,6 +232,15 @@ function bindThemeSwitch() {
     });
 }
 
+// Letter-roll label (Uiverse, KINGFRESS) for the top-bar pills: two copies of
+// the word stacked in one line; on hover each letter rolls out downwards while
+// its twin rolls in from above, staggered letter by letter. Screen readers get
+// the plain word.
+function roll(label) {
+    const letters = (row) => [...label].map((ch, i) => html`<span style="--i: ${i}">${ch === ' ' ? raw('&nbsp;') : ch}</span>`);
+    return html`<span class="roll" aria-hidden="true"><span class="roll__row">${letters()}</span><span class="roll__row roll__row--in">${letters()}</span></span><span class="visually-hidden">${label}</span>`;
+}
+
 const brand = html`<a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">PM</span><span>Project Manager</span></a>`;
 const footer = () => html`&copy; ${new Date().getFullYear()} Project Manager`;
 
@@ -247,7 +256,7 @@ export async function page(title, { auth = true } = {}) {
         return new Promise(() => {}); // never resolves; the page is leaving
     }
 
-    let actions = html`<a class="btn btn-ghost" href="login.html">Sign in</a><a class="btn btn-primary" href="register.html">Create account</a>`;
+    let actions = html`<a class="top-btn" href="login.html">${roll('Sign in')}</a><a class="top-btn top-btn--primary" href="register.html">${roll('Create account')}</a>`;
     let nav = '';
 
     if (session) {
@@ -256,16 +265,16 @@ export async function page(title, { auth = true } = {}) {
         const section = location.pathname.split('/').pop();
         const current = (...names) => (names.some((n) => section.startsWith(n)) ? 'page' : 'false');
         nav = html`<nav class="app-nav" aria-label="Main">
-            <a href="dashboard.html" aria-current="${current('dashboard')}">Dashboard</a>
-            <a href="projects.html" aria-current="${current('project', 'board', 'task', 'activity')}">Projects</a>
+            <a class="top-btn" href="dashboard.html" aria-current="${current('dashboard')}">${roll('Dashboard')}</a>
+            <a class="top-btn" href="projects.html" aria-current="${current('project', 'board', 'task', 'activity')}">${roll('Projects')}</a>
         </nav>`;
         actions = html`
-            <a class="notification-link" href="notifications.html" aria-label="Notifications${count ? `, ${count} unread` : ''}">
-                <span aria-hidden="true">Notifications</span>
+            <a class="top-btn notification-link" href="notifications.html" aria-current="${current('notifications')}" aria-label="Notifications${count ? `, ${count} unread` : ''}">
+                ${roll('Notifications')}
                 ${count ? html`<span class="notification-count">${Math.min(count, 99)}</span>` : ''}
             </a>
             <span class="user-chip"><span class="avatar" aria-hidden="true">${me.username[0]}</span><span>${me.username}</span></span>
-            <button type="button" class="btn btn-ghost" data-sign-out>Sign out</button>`;
+            <button type="button" class="top-btn" data-sign-out>${roll('Sign out')}</button>`;
     }
 
     document.body.innerHTML = show(html`
