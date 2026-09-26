@@ -215,3 +215,19 @@ test('deadline time: saved, optional, ignored without a date, and not logged as 
     assert.equal(evening.overdue - morning.overdue, 1);
     assert.equal(morning.due_today - evening.due_today, 1);
 });
+
+test('add_checklist: many items at once, in order, all or nothing', async () => {
+    const task = ids['Deploy application'];
+    assert.equal(code(await as.tester.rpc('add_checklist', { p_task: task.id, p_title: 'Nope', p_items: ['a'] })), '42501'); // viewer
+
+    const cid = (await as.developer.rpc('add_checklist', { p_task: task.id, p_title: 'Demo steps', p_items: ['Log in', '', 'Go online', 'Accept ride'] })).data;
+    const { data: items } = await as.developer.from('task_checklist_items').select('content, position, is_completed')
+        .eq('checklist_id', cid).order('position');
+    assert.deepEqual(items.map((i) => [i.content, i.position]), [['Log in', 0], ['Go online', 1], ['Accept ride', 2]]);
+    assert.ok(items.every((i) => !i.is_completed));
+
+    // A too-long item rolls the whole thing back: no half-made checklist.
+    assert.ok((await as.developer.rpc('add_checklist', { p_task: task.id, p_title: 'Broken', p_items: ['ok', 'x'.repeat(300)] })).error);
+    const { data: broken } = await as.developer.from('task_checklists').select('id').eq('title', 'Broken');
+    assert.equal(broken.length, 0);
+});

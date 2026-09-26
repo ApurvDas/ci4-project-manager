@@ -78,6 +78,11 @@ render(content, html`
                             <label for="checklist-title">New checklist</label>
                             <input type="text" id="checklist-title" name="title" maxlength="150" placeholder="For example: Acceptance criteria" required>
                         </div>
+                        <div class="field mt-4">
+                            <label for="checklist-items">Items</label>
+                            <textarea id="checklist-items" name="items" rows="6" placeholder="One item per line — paste a whole list here"></textarea>
+                            <p class="hint">Optional. Bullets and checkboxes at the start of a line are removed.</p>
+                        </div>
                         <button type="submit" class="btn btn-secondary mt-4">Add checklist</button>
                     </form>
                 </div>` : ''}
@@ -140,8 +145,14 @@ const actions = {
         go(`project.html?id=${projectId}`, 'Task deleted.');
     },
     'add-checklist': async (f) => {
-        await call(sb.from('task_checklists').insert({ task_id: id, title: f.title.trim() }));
-        go(here, 'Checklist added.');
+        // One item per line; drop list markers such as "-", "•", "1.", "[ ]" or "☐".
+        const items = f.items.split(/\r?\n/)
+            .map((line) => line.replace(/^\s*(?:[-*•◦▪]\s*)?(?:\d+[.)]\s+)?(?:\[[ xX]?\]|[☐☑✓✔□■])?\s*/, '').trim())
+            .filter(Boolean);
+        const tooLong = items.find((item) => item.length > 255);
+        if (tooLong) throw new Error(`Items can be at most 255 characters: "${tooLong.slice(0, 40)}…"`);
+        await call(sb.rpc('add_checklist', { p_task: id, p_title: f.title, p_items: items }));
+        go(here, items.length ? `Checklist added with ${items.length} item${items.length === 1 ? '' : 's'}.` : 'Checklist added.');
     },
     'add-item': async (f, form) => {
         await call(sb.from('task_checklist_items').insert({ checklist_id: Number(form.dataset.checklist), content: f.content.trim() }));

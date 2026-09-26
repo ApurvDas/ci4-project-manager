@@ -35,6 +35,16 @@ test.describe('Checklist', () => {
         await expect(page.locator('[data-checklist-progress]')).toContainText('4/4');
     });
 
+    test('a pasted list becomes one checklist with every item', async ({ page }) => {
+        await page.fill('#checklist-title', 'Demo steps');
+        await page.fill('#checklist-items', ['- [ ] Driver login', '• Go online', '', '☐ Accept ride', '1. Complete ride'].join('\n'));
+        await page.click('button:has-text("Add checklist")');
+        await expect(page.locator('.alert-success')).toContainText('Checklist added with 4 items');
+        const list = page.locator('.checklist', { hasText: 'Demo steps' });
+        await expect(list.locator('.checklist-text')).toHaveText(['Driver login', 'Go online', 'Accept ride', 'Complete ride']);
+        await expect(page.locator('[data-checklist-progress]')).toContainText('2/8');
+    });
+
     test('a viewer gets no toggle controls at all', async ({ page }) => {
         await signIn(page, 'tester');
         await page.goto(TASK);
