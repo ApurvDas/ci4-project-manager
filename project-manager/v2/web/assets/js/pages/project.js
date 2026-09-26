@@ -37,7 +37,7 @@ const border = 'border-top: 1px solid var(--border);';
 const canRemove = (m) => m.role !== 'owner' && (isOwner || (canManage && (m.role !== 'manager' || m.user_id === me.id)));
 const canChangeRole = (m) => isOwner && m.role !== 'owner';
 
-// Animated plus (Uiverse, mRcOol7) shown on each quick-add chip.
+// Animated plus (Uiverse, mRcOol7): the add button beside each quick-add tag.
 const plusIcon = html`<svg class="plus-icon" viewBox="0 0 24 24" aria-hidden="true">
     <path stroke-width="1.8" d="M12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22Z"></path>
     <path stroke-width="1.8" d="M8 12H16"></path>
@@ -181,13 +181,12 @@ render(content, html`
                 ${canWrite ? html`<div class="card-body" style="${border}">
                     ${suggestions.length ? html`
                         <p class="hint mt-0">Quick add — one click each:</p>
-                        <div class="tag-list tag-suggestions">${suggestions.map((s) => html`
-                            <form class="inline-form" data-action="add-tag">
+                        <div class="tag-options">${suggestions.map((s) => html`
+                            <form class="tag-option" data-action="add-tag">
                                 <input type="hidden" name="name" value="${s.name}">
                                 <input type="hidden" name="color" value="${s.color}">
-                                <button type="submit" class="tag tag-suggest" aria-label="Add tag ${s.name}">
-                                    <span class="tag-swatch" style="background: ${s.color}"></span>${s.name}${plusIcon}
-                                </button>
+                                <span class="tag-option-name"><span class="tag-swatch" style="background: ${s.color}"></span>${s.name}</span>
+                                <button type="submit" class="plus-btn" title="Add ${s.name}" aria-label="Add tag ${s.name}">${plusIcon}</button>
                             </form>`)}
                         </div>` : ''}
                     <form data-action="add-tag" class="${suggestions.length ? 'mt-4' : ''}">

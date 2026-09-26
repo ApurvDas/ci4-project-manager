@@ -1501,26 +1501,43 @@ button, input, select, textarea {
     margin-top: var(--space-2);
 }
 
-/* The suggestion row already sits inside padded card-body. */
-.tag-suggestions {
-    padding: var(--space-2) 0 0;
+/* Quick add: each suggested tag in its own small container, with the
+   animated plus button beside its name. Greys only, from the theme tokens;
+   the dot keeps the tag's own colour. */
+.tag-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: var(--space-2);
+    margin-top: var(--space-2);
 }
 
-/* Suggested tags: dashed until clicked, so they read as "addable", not "applied". */
-.tag-suggest {
-    border: 1px dashed var(--border-strong);
-    background: transparent;
-    color: var(--text-muted);
-    font-family: inherit;
-    cursor: pointer;
-    transition: color 120ms ease, border-color 120ms ease;
+.tag-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    transition: border-color 150ms ease;
 }
 
-.tag-suggest:hover,
-.tag-suggest:focus-visible {
-    border-style: solid;
-    color: var(--text);
+.tag-option:hover,
+.tag-option:focus-within {
+    border-color: var(--border-strong);
 }
+
+.tag-option-name {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+    font-size: 0.8rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
 
 .field input[type="color"] {
     width: 100%;
@@ -1997,28 +2014,48 @@ input:checked:focus + .switch-left + .switch-right {
   outline: none;
 }
 
-/* Animated plus icon ------------------------------------------------------------ */
-/* From Uiverse.io by mRcOol7 (converted from Tailwind), in the site's own
-   colours: on each quick-add tag chip it turns 90deg and fills on hover, and
-   flashes the primary colour while pressed. Follows light/dark via tokens. */
-.plus-icon {
-  width: 1.15em;
-  height: 1.15em;
+/* Animated plus button ---------------------------------------------------------- */
+/* From Uiverse.io by mRcOol7 (converted from Tailwind), in the site's greys:
+   turns 90deg and fills on hover, flashes the primary colour while pressed.
+   Follows light/dark through the theme tokens. */
+.plus-btn {
+  display: inline-grid;
+  place-items: center;
   flex-shrink: 0;
+  padding: 2px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  line-height: 0;
+  cursor: pointer;
+  outline: none;
+  transition: transform 300ms;
+}
+
+.plus-btn:hover {
+  transform: rotate(90deg);
+}
+
+.plus-icon {
+  width: 26px;
+  height: 26px;
   stroke: var(--text-muted);
   fill: none;
-  transition: transform 300ms, fill 300ms, stroke 300ms;
+  transition: fill 300ms, stroke 300ms;
 }
 
-.tag-suggest:hover .plus-icon,
-.tag-suggest:focus-visible .plus-icon {
-  transform: rotate(90deg);
+.plus-btn:hover .plus-icon {
   stroke: var(--text);
-  fill: var(--surface-2);
+  fill: var(--border);
 }
 
-.tag-suggest:active .plus-icon {
+.plus-btn:active .plus-icon {
   stroke: var(--on-primary);
   fill: var(--primary);
   transition-duration: 0s;
+}
+
+.plus-btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
 }
