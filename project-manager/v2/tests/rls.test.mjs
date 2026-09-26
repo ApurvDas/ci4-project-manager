@@ -267,3 +267,20 @@ test('add_checklist_items: one flat list per task, created on first use', async 
     const items = lists[0].task_checklist_items.sort((a, b) => a.position - b.position).map((i) => i.content);
     assert.deepEqual(items, ['One', 'Two', 'Three']);
 });
+
+test('project progress moves with checklist ticks, and completed tasks count fully', async () => {
+    const wiki = ids['Internal Wiki'];            // 2 tasks, both completed
+    assert.equal((await as.admin.rpc('project_progress', { p_project: wiki })).data, 100);
+
+    const mc = ids['Marketing Campaign'];         // 2 open tasks; "Draft launch blog post" has 2 of 3 items ticked
+    const before = (await as.manager.rpc('project_progress', { p_project: mc })).data;
+    assert.equal(before, 33);                    // (66.7% + 0%) / 2
+
+    const { data: item } = await as.manager.from('task_checklist_items').select('id').eq('content', 'Editorial review').single();
+    await as.manager.rpc('toggle_item', { p_item: item.id });
+    assert.equal((await as.manager.rpc('project_progress', { p_project: mc })).data, 50); // (100% + 0%) / 2
+
+    const dash = (await as.manager.rpc('dashboard')).data;
+    assert.equal(dash.myProjects.find((p) => p.id === mc).progress, 50, 'dashboard agrees');
+    assert.equal((await as.designer.rpc('project_progress', { p_project: ids['Mobile Application'] })).data, 0, 'non-member sees nothing');
+});

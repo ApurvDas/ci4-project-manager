@@ -28,8 +28,9 @@ const canWrite = can(role, 'member');
 const assignable = isOwner ? ['manager', 'member', 'viewer'] : ['member', 'viewer'];
 const memberIds = new Set(members.map((m) => m.user_id));
 const candidates = profiles.filter((p) => !memberIds.has(p.id));
-const done = tasks.filter((t) => t.status === 'completed').length;
-const percent = tasks.length ? Math.round((done * 100) / tasks.length) : 0;
+// Average of task progress, where a task's checklist counts until it's completed
+// (same rule as the dashboard, defined once in project_progress()).
+const percent = await call(sb.rpc('project_progress', { p_project: id }));
 const border = 'border-top: 1px solid var(--border);';
 
 // Mirrors canRemoveMember / canChangeRole — only to hide controls.
