@@ -7,7 +7,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main, supabase-rewrite]
-    paths: ['project-manager/v2/web/**', '.github/workflows/pages.yml']
+    paths: ['project-manager/v2/web/**', 'project-manager/v2/scripts/**', '.github/workflows/pages.yml']
   workflow_dispatch:
 
 permissions:
@@ -35,6 +35,9 @@ jobs:
         run: |
           test -n "$SUPABASE_URL" && test -n "$SUPABASE_ANON_KEY" || { echo "::error::Set the SUPABASE_URL and SUPABASE_ANON_KEY repository variables"; exit 1; }
           printf "export default {\n    url: '%s',\n    anonKey: '%s',\n};\n" "$SUPABASE_URL" "$SUPABASE_ANON_KEY" > project-manager/v2/web/assets/js/config.js
+
+      - name: Version every CSS/JS link so browsers never mix two deploys
+        run: bash project-manager/v2/scripts/stamp-version.sh project-manager/v2/web "${GITHUB_SHA::8}"
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

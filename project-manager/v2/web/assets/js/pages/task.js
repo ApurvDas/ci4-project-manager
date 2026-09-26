@@ -59,7 +59,7 @@ render(content, html`
                     <div class="checklist"><ul class="checklist-items">${items.map((i) => html`
                         <li class="checklist-item ${i.is_completed ? 'is-done' : ''}">
                             ${canWrite
-                                ? html`<button type="button" class="checklist-box" data-toggle-item="${i.id}" aria-pressed="${i.is_completed}" aria-label="Toggle ${i.content}"><span class="checkmark"></span></button>`
+                                ? html`<button type="button" class="checklist-box" data-toggle-item="${i.id}" aria-pressed="${String(i.is_completed)}" aria-label="Toggle ${i.content}"><span class="checkmark"></span></button>`
                                 : html`<span class="checklist-box ${i.is_completed ? 'is-checked' : ''}" aria-hidden="true"><span class="checkmark"></span></span>`}
                             <span class="checklist-text" data-text>${i.content}</span>
                             ${canWrite ? html`<span class="checklist-tools">
