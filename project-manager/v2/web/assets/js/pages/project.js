@@ -36,6 +36,19 @@ const border = 'border-top: 1px solid var(--border);';
 const canRemove = (m) => m.role !== 'owner' && (isOwner || (canManage && (m.role !== 'manager' || m.user_id === me.id)));
 const canChangeRole = (m) => isOwner && m.role !== 'owner';
 
+// Ready-made tags offered as one-click chips (only those the project lacks).
+const SUGGESTED_TAGS = [
+    ['Bug', '#EF4444'], ['Feature', '#3B82F6'], ['Urgent', '#F97316'], ['Design', '#EC4899'],
+    ['Frontend', '#6366F1'], ['Backend', '#10B981'], ['Testing', '#F59E0B'], ['Docs', '#64748B'],
+    ['Research', '#8B5CF6'], ['Demo', '#06B6D4'], ['Investor', '#14B8A6'], ['Marketing', '#D946EF'],
+];
+const have = new Set(tags.map((t) => t.name.toLowerCase()));
+const suggestions = SUGGESTED_TAGS.filter(([name]) => !have.has(name.toLowerCase())).map(([name, color]) => ({ name, color }));
+
+// A custom tag's colour follows its name (same name, same colour) until the user picks one.
+const PALETTE = SUGGESTED_TAGS.map(([, color]) => color);
+const colourFor = (name) => PALETTE[[...name.toLowerCase()].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % PALETTE.length];
+
 const options = (values, selected) => values.map((v) => html`<option value="${v}" ${v === selected ? 'selected' : ''}>${humanise(v)}</option>`);
 const empty = (title, text) => html`<div class="empty-state"><h2>${title}</h2><p>${text}</p></div>`;
 
@@ -157,10 +170,21 @@ render(content, html`
                         </span>`)}
                     </div>`}
                 ${canWrite ? html`<div class="card-body" style="${border}">
-                    <form data-action="add-tag">
+                    ${suggestions.length ? html`
+                        <p class="hint mt-0">Quick add — one click each:</p>
+                        <div class="tag-list tag-suggestions">${suggestions.map((s) => html`
+                            <form class="inline-form" data-action="add-tag">
+                                <input type="hidden" name="name" value="${s.name}">
+                                <input type="hidden" name="color" value="${s.color}">
+                                <button type="submit" class="tag tag-suggest" aria-label="Add tag ${s.name}">
+                                    <span class="tag-swatch" style="background: ${s.color}"></span>${s.name}<span aria-hidden="true">+</span>
+                                </button>
+                            </form>`)}
+                        </div>` : ''}
+                    <form data-action="add-tag" class="${suggestions.length ? 'mt-4' : ''}">
                         <div class="form-grid">
-                            <div class="field"><label for="tag-name">New tag</label><input type="text" id="tag-name" name="name" maxlength="50" required></div>
-                            <div class="field"><label for="tag-color">Colour</label><input type="color" id="tag-color" name="color" value="#6B7280"></div>
+                            <div class="field"><label for="tag-name">Custom tag</label><input type="text" id="tag-name" name="name" maxlength="50" placeholder="e.g. Investor" required></div>
+                            <div class="field"><label for="tag-color">Colour</label><input type="color" id="tag-color" name="color" value="#6B7280"><p class="hint">Picked for you; change it if you like.</p></div>
                         </div>
                         <button type="submit" class="btn btn-secondary mt-4">Add tag</button>
                     </form>
@@ -203,6 +227,17 @@ const actions = {
         go(here, 'Tag deleted.');
     },
 };
+
+// Auto-colour the custom tag as its name is typed, until the colour is picked by hand.
+const tagName = content.querySelector('#tag-name');
+const tagColour = content.querySelector('#tag-color');
+if (tagName) {
+    let picked = false;
+    tagColour.addEventListener('input', () => { picked = true; });
+    tagName.addEventListener('input', () => {
+        if (!picked) tagColour.value = tagName.value.trim() ? colourFor(tagName.value.trim()) : '#6B7280';
+    });
+}
 
 // A role's Save only makes sense once a different role is picked.
 content.querySelectorAll('form[data-action="role"]').forEach((form) => {
