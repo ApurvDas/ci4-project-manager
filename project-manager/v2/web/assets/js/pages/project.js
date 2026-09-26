@@ -187,7 +187,13 @@ render(content, html`
                             <div class="field"><label for="tag-name">Custom tag</label><input type="text" id="tag-name" name="name" maxlength="50" placeholder="e.g. Investor" required></div>
                             <div class="field"><label for="tag-color">Colour</label><input type="color" id="tag-color" name="color" value="#6B7280"><p class="hint">Picked for you; change it if you like.</p></div>
                         </div>
-                        <button type="submit" class="btn btn-secondary mt-4">Add tag</button>
+                        <button type="submit" class="plus-btn mt-4" title="Add tag" aria-label="Add tag">
+                            <svg viewBox="0 0 24 24" width="50" height="50" aria-hidden="true">
+                                <path stroke-width="1.5" d="M12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22Z"></path>
+                                <path stroke-width="1.5" d="M8 12H16"></path>
+                                <path stroke-width="1.5" d="M12 16V8"></path>
+                            </svg>
+                        </button>
                     </form>
                 </div>` : ''}
             </section>

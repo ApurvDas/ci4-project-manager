@@ -117,6 +117,9 @@ test.describe('Projects and tasks', () => {
 
         await page.fill('#tag-name', 'Investor Meet');
         expect(await page.inputValue('#tag-color')).not.toBe('#6b7280');
+        await page.getByRole('button', { name: 'Add tag', exact: true }).click();
+        await expect(page.locator('.alert-success')).toContainText('Tag added');
+        await expect(page.locator('.tag-list .tag', { hasText: 'Investor Meet' })).toBeVisible();
     });
 
     test('the dashboard shows the tags of your open tasks', async ({ page }) => {
