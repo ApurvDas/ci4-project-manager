@@ -45,11 +45,33 @@ test.describe('Checklist', () => {
         await expect(page.locator('[data-checklist-progress]')).toContainText('2/8');
     });
 
+    test('rename a checklist, edit an item and delete one', async ({ page }) => {
+        page.on('dialog', (d) => d.accept());
+        const list = page.locator('.checklist', { hasText: 'Authentication' });
+
+        await list.getByRole('button', { name: 'Rename checklist Authentication' }).click();
+        await list.locator('.checklist-edit input').fill('Auth flow');
+        await list.locator('.checklist-edit input').press('Enter');
+        await expect(page.locator('.alert-success')).toContainText('Checklist updated');
+        await expect(page.locator('.checklist-title').first()).toHaveText('Auth flow');
+
+        await page.getByRole('button', { name: 'Edit Forgot password' }).click();
+        await page.locator('.checklist-edit input').fill('Reset password');
+        await page.locator('.checklist-edit button[type="submit"]').click();
+        await expect(page.locator('.checklist-text', { hasText: 'Reset password' })).toBeVisible();
+
+        await page.getByRole('button', { name: 'Delete Email verification' }).click();
+        await expect(page.locator('.alert-success')).toContainText('Item deleted');
+        await expect(page.locator('.checklist-text', { hasText: 'Email verification' })).toHaveCount(0);
+        await expect(page.locator('[data-checklist-progress]')).toContainText('2/3');
+    });
+
     test('a viewer gets no toggle controls at all', async ({ page }) => {
         await signIn(page, 'tester');
         await page.goto(TASK);
         await expect(page.locator('.checklist-item')).not.toHaveCount(0);
         expect(await page.locator('[data-toggle-item]').count()).toBe(0);
+        expect(await page.locator('.checklist-tools').count()).toBe(0);
     });
 });
 

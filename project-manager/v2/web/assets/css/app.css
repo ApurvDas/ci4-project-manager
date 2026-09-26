@@ -1086,7 +1086,63 @@ button, input, select, textarea {
     margin-top: var(--space-3);
 }
 
-.checklist-add input {
+/* Checklist rename / edit / delete: quiet until the row is hovered or focused. */
+.checklist-head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+}
+
+.checklist-head .checklist-title {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.checklist-item .checklist-text {
+    flex: 1;
+}
+
+.checklist-tools {
+    display: inline-flex;
+    gap: var(--space-1);
+    opacity: 0.45;
+    transition: opacity 120ms ease;
+}
+
+.checklist-head:hover .checklist-tools,
+.checklist-item:hover .checklist-tools,
+.checklist-tools:focus-within {
+    opacity: 1;
+}
+
+.checklist-tools button {
+    padding: 0 var(--space-1);
+    background: none;
+    border: 0;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font: inherit;
+    font-size: 0.78rem;
+    cursor: pointer;
+}
+
+.checklist-tools button:hover {
+    color: var(--text);
+}
+
+.checklist-tools [data-delete]:hover {
+    color: var(--danger);
+}
+
+.checklist-edit {
+    display: flex;
+    flex: 1;
+    gap: var(--space-2);
+}
+
+.checklist-add input,
+.checklist-edit input {
     flex: 1;
     height: 32px;
     padding: 0 var(--space-3);

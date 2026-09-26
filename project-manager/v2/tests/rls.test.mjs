@@ -231,3 +231,25 @@ test('add_checklist: many items at once, in order, all or nothing', async () => 
     const { data: broken } = await as.developer.from('task_checklists').select('id').eq('title', 'Broken');
     assert.equal(broken.length, 0);
 });
+
+test('checklists: member+ renames and deletes; viewers cannot; ticks only via toggle_item', async () => {
+    const task = ids['Build authentication'];
+    const { data: list } = await as.developer.from('task_checklists').select('id').eq('task_id', task.id).eq('title', 'Authentication').single();
+    const { data: item } = await as.developer.from('task_checklist_items').select('id').eq('content', 'Add validation').single();
+
+    // Viewer: RLS filters the rows out, so nothing changes.
+    assert.equal((await as.tester.from('task_checklists').update({ title: 'Hacked' }).eq('id', list.id).select()).data.length, 0);
+    assert.equal((await as.tester.from('task_checklist_items').delete().eq('id', item.id).select()).data.length, 0);
+
+    // Member: rename, edit text.
+    assert.equal((await as.developer.from('task_checklists').update({ title: 'Auth' }).eq('id', list.id).select()).data.length, 1);
+    assert.equal((await as.developer.from('task_checklist_items').update({ content: 'Validate input' }).eq('id', item.id).select()).data.length, 1);
+    // ...but not flip the tick directly (column not granted).
+    assert.ok((await as.developer.from('task_checklist_items').update({ is_completed: false }).eq('id', item.id)).error);
+
+    // Member: delete an item, then the whole checklist (its items go with it).
+    assert.equal((await as.developer.from('task_checklist_items').delete().eq('id', item.id).select()).data.length, 1);
+    assert.equal((await as.developer.from('task_checklists').delete().eq('id', list.id).select()).data.length, 1);
+    const { data: left } = await as.developer.from('task_checklist_items').select('id').eq('checklist_id', list.id);
+    assert.equal(left.length, 0);
+});

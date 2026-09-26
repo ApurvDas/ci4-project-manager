@@ -56,13 +56,23 @@ render(content, html`
                 </div>
                 ${checklists.length === 0 ? empty('No checklists', 'Break this task into smaller steps.') : checklists.map((c) => html`
                     <div class="checklist">
-                        <h3 class="checklist-title">${c.title}</h3>
+                        <div class="checklist-head">
+                            <h3 class="checklist-title" data-text>${c.title}</h3>
+                            ${canWrite ? html`<span class="checklist-tools">
+                                <button type="button" data-edit="checklist" data-id="${c.id}" data-max="150" aria-label="Rename checklist ${c.title}">Rename</button>
+                                <button type="button" data-delete="checklist" data-id="${c.id}" aria-label="Delete checklist ${c.title}">Delete</button>
+                            </span>` : ''}
+                        </div>
                         <ul class="checklist-items">${c.task_checklist_items.sort((a, b) => a.position - b.position || a.id - b.id).map((i) => html`
                             <li class="checklist-item ${i.is_completed ? 'is-done' : ''}">
                                 ${canWrite
                                     ? html`<button type="button" class="checklist-box" data-toggle-item="${i.id}" aria-pressed="${i.is_completed}" aria-label="Toggle ${i.content}">${i.is_completed ? '✓' : ''}</button>`
                                     : html`<span class="checklist-box" aria-hidden="true">${i.is_completed ? '✓' : ''}</span>`}
-                                <span class="checklist-text">${i.content}</span>
+                                <span class="checklist-text" data-text>${i.content}</span>
+                                ${canWrite ? html`<span class="checklist-tools">
+                                    <button type="button" data-edit="item" data-id="${i.id}" data-max="255" aria-label="Edit ${i.content}">✎</button>
+                                    <button type="button" data-delete="item" data-id="${i.id}" aria-label="Delete ${i.content}">×</button>
+                                </span>` : ''}
                             </li>`)}
                         </ul>
                         ${canWrite ? html`
@@ -174,6 +184,66 @@ content.querySelectorAll('form[data-action]').forEach((form) => {
         if (form.dataset.confirm && !confirm(form.dataset.confirm)) e.preventDefault();
     });
     onSubmit(form, (fields) => actions[form.dataset.action](fields, form));
+});
+
+// Rename / edit / delete for checklists and items. RLS allows member+ and only
+// the text columns; the page reloads afterwards so progress stays correct.
+const TABLES = {
+    checklist: { table: 'task_checklists', column: 'title', noun: 'Checklist' },
+    item: { table: 'task_checklist_items', column: 'content', noun: 'Item' },
+};
+
+content.addEventListener('click', async (event) => {
+    const del = event.target.closest('[data-delete]');
+    if (del) {
+        const kind = TABLES[del.dataset.delete];
+        const warning = del.dataset.delete === 'checklist' ? 'Delete this checklist and all its items?' : 'Delete this item?';
+        if (!confirm(warning)) return;
+        try {
+            const gone = await call(sb.from(kind.table).delete().eq('id', del.dataset.id).select('id'));
+            if (gone.length === 0) throw new Error('You do not have permission to do that.');
+            go(here, `${kind.noun} deleted.`);
+        } catch (error) {
+            showAlert(errorMessage(error));
+        }
+        return;
+    }
+
+    const edit = event.target.closest('[data-edit]');
+    if (!edit) return;
+    const kind = TABLES[edit.dataset.edit];
+    const row = edit.closest('.checklist-head, .checklist-item');
+    const text = row.querySelector('[data-text]');
+
+    // Swap the text for a small inline form: Enter saves, Esc cancels.
+    const form = document.createElement('form');
+    form.className = 'checklist-edit';
+    form.innerHTML = '<input type="text" required><button type="submit" class="btn btn-secondary btn-sm">Save</button><button type="button" class="btn btn-ghost btn-sm" data-cancel>Cancel</button>';
+    const input = form.querySelector('input');
+    input.value = text.textContent;
+    input.maxLength = Number(edit.dataset.max);
+    input.setAttribute('aria-label', `New ${kind.column === 'title' ? 'checklist name' : 'item text'}`);
+    text.hidden = true;
+    edit.parentElement.hidden = true;
+    text.after(form);
+    input.focus();
+    input.select();
+
+    const cancel = () => { form.remove(); text.hidden = false; edit.parentElement.hidden = false; };
+    form.querySelector('[data-cancel]').addEventListener('click', cancel);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Escape') cancel(); });
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const value = input.value.trim();
+        if (!value || value === text.textContent) return cancel();
+        try {
+            const saved = await call(sb.from(kind.table).update({ [kind.column]: value }).eq('id', edit.dataset.id).select('id'));
+            if (saved.length === 0) throw new Error('You do not have permission to do that.');
+            go(here, `${kind.noun} updated.`);
+        } catch (error) {
+            showAlert(errorMessage(error));
+        }
+    });
 });
 
 // Ticking an item updates in place; toggle_item() re-checks the role and returns fresh progress.
