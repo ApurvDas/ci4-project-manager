@@ -38,9 +38,10 @@ const canChangeRole = (m) => isOwner && m.role !== 'owner';
 
 // Ready-made tags offered as one-click chips (only those the project lacks).
 const SUGGESTED_TAGS = [
-    ['Bug', '#EF4444'], ['Feature', '#3B82F6'], ['Urgent', '#F97316'], ['Design', '#EC4899'],
-    ['Frontend', '#6366F1'], ['Backend', '#10B981'], ['Testing', '#F59E0B'], ['Docs', '#64748B'],
-    ['Research', '#8B5CF6'], ['Demo', '#06B6D4'], ['Investor', '#14B8A6'], ['Marketing', '#D946EF'],
+    ['Bug', '#EF4444'], ['Bug-Fix', '#F43F5E'], ['Feature', '#3B82F6'], ['Urgent', '#F97316'],
+    ['Design', '#EC4899'], ['Frontend', '#6366F1'], ['Backend', '#10B981'], ['Testing', '#EAB308'],
+    ['Docs', '#64748B'], ['Research', '#8B5CF6'], ['Demo', '#3B82F6'], ['Investor', '#A855F7'],
+    ['Driver-App', '#22C55E'], ['Marketing', '#D946EF'],
 ];
 const have = new Set(tags.map((t) => t.name.toLowerCase()));
 const suggestions = SUGGESTED_TAGS.filter(([name]) => !have.has(name.toLowerCase())).map(([name, color]) => ({ name, color }));
