@@ -23,7 +23,8 @@ const canWrite = can(role, 'member');
 const canManage = can(role, 'manager');
 const canDelete = canManage || task.created_by === me.id;
 const overdue = task.status !== 'completed' && isOverdue(task.due_date, task.due_time);
-const items = checklists.flatMap((c) => c.task_checklist_items);
+// One flat list per task; older tasks may hold several checklists, shown in creation order.
+const items = checklists.flatMap((c) => c.task_checklist_items.sort((a, b) => a.position - b.position || a.id - b.id));
 const progressText = (p) => `${p.completed}/${p.total} · ${p.percent}%`;
 const doneCount = items.filter((i) => i.is_completed).length;
 const border = 'border-top: 1px solid var(--border);';
@@ -51,49 +52,30 @@ render(content, html`
 
             <section class="card">
                 <div class="panel-head">
-                    <h2>Checklists</h2>
+                    <h2>Checklist</h2>
                     ${items.length ? html`<span class="badge" data-checklist-progress>${progressText({ completed: doneCount, total: items.length, percent: Math.round((doneCount * 100) / items.length) })}</span>` : ''}
                 </div>
-                ${checklists.length === 0 ? empty('No checklists', 'Break this task into smaller steps.') : checklists.map((c) => html`
-                    <div class="checklist">
-                        <div class="checklist-head">
-                            <h3 class="checklist-title" data-text>${c.title}</h3>
+                ${items.length === 0 ? empty('No checklist yet', 'Add the steps for this task below.') : html`
+                    <div class="checklist"><ul class="checklist-items">${items.map((i) => html`
+                        <li class="checklist-item ${i.is_completed ? 'is-done' : ''}">
+                            ${canWrite
+                                ? html`<button type="button" class="checklist-box" data-toggle-item="${i.id}" aria-pressed="${i.is_completed}" aria-label="Toggle ${i.content}">${i.is_completed ? '✓' : ''}</button>`
+                                : html`<span class="checklist-box" aria-hidden="true">${i.is_completed ? '✓' : ''}</span>`}
+                            <span class="checklist-text" data-text>${i.content}</span>
                             ${canWrite ? html`<span class="checklist-tools">
-                                <button type="button" data-edit="checklist" data-id="${c.id}" data-max="150" aria-label="Rename checklist ${c.title}">Rename</button>
-                                <button type="button" data-delete="checklist" data-id="${c.id}" aria-label="Delete checklist ${c.title}">Delete</button>
+                                <button type="button" data-edit="item" data-id="${i.id}" data-max="255" aria-label="Edit ${i.content}">✎</button>
+                                <button type="button" data-delete="item" data-id="${i.id}" aria-label="Delete ${i.content}">×</button>
                             </span>` : ''}
-                        </div>
-                        <ul class="checklist-items">${c.task_checklist_items.sort((a, b) => a.position - b.position || a.id - b.id).map((i) => html`
-                            <li class="checklist-item ${i.is_completed ? 'is-done' : ''}">
-                                ${canWrite
-                                    ? html`<button type="button" class="checklist-box" data-toggle-item="${i.id}" aria-pressed="${i.is_completed}" aria-label="Toggle ${i.content}">${i.is_completed ? '✓' : ''}</button>`
-                                    : html`<span class="checklist-box" aria-hidden="true">${i.is_completed ? '✓' : ''}</span>`}
-                                <span class="checklist-text" data-text>${i.content}</span>
-                                ${canWrite ? html`<span class="checklist-tools">
-                                    <button type="button" data-edit="item" data-id="${i.id}" data-max="255" aria-label="Edit ${i.content}">✎</button>
-                                    <button type="button" data-delete="item" data-id="${i.id}" aria-label="Delete ${i.content}">×</button>
-                                </span>` : ''}
-                            </li>`)}
-                        </ul>
-                        ${canWrite ? html`
-                            <form class="checklist-add" data-action="add-item" data-checklist="${c.id}">
-                                <label class="visually-hidden" for="item-${c.id}">Add an item</label>
-                                <input type="text" id="item-${c.id}" name="content" placeholder="Add an item" maxlength="255" required>
-                                <button type="submit" class="btn btn-secondary btn-sm">Add</button>
-                            </form>` : ''}
-                    </div>`)}
+                        </li>`)}
+                    </ul></div>`}
                 ${canWrite ? html`<div class="card-body" style="${border}">
-                    <form data-action="add-checklist">
+                    <form data-action="add-items">
                         <div class="field">
-                            <label for="checklist-title">New checklist</label>
-                            <input type="text" id="checklist-title" name="title" maxlength="150" placeholder="For example: Acceptance criteria" required>
+                            <label class="visually-hidden" for="checklist-items">Add checklist items</label>
+                            <textarea id="checklist-items" name="items" rows="3" placeholder="Add an item — or paste a list, one per line" required></textarea>
+                            <p class="hint">Bullets and checkboxes at the start of a line are removed. Ctrl+Enter adds.</p>
                         </div>
-                        <div class="field mt-4">
-                            <label for="checklist-items">Items</label>
-                            <textarea id="checklist-items" name="items" rows="6" placeholder="One item per line — paste a whole list here"></textarea>
-                            <p class="hint">Optional. Bullets and checkboxes at the start of a line are removed.</p>
-                        </div>
-                        <button type="submit" class="btn btn-secondary mt-4">Add checklist</button>
+                        <button type="submit" class="btn btn-secondary mt-4">Add</button>
                     </form>
                 </div>` : ''}
             </section>
@@ -154,19 +136,16 @@ const actions = {
         await call(sb.rpc('delete_task', { p_task: id }));
         go(`project.html?id=${projectId}`, 'Task deleted.');
     },
-    'add-checklist': async (f) => {
+    'add-items': async (f) => {
         // One item per line; drop list markers such as "-", "•", "1.", "[ ]" or "☐".
-        const items = f.items.split(/\r?\n/)
+        const lines = f.items.split(/\r?\n/)
             .map((line) => line.replace(/^\s*(?:[-*•◦▪]\s*)?(?:\d+[.)]\s+)?(?:\[[ xX]?\]|[☐☑✓✔□■])?\s*/, '').trim())
             .filter(Boolean);
-        const tooLong = items.find((item) => item.length > 255);
+        if (lines.length === 0) throw new Error('Type an item first.');
+        const tooLong = lines.find((item) => item.length > 255);
         if (tooLong) throw new Error(`Items can be at most 255 characters: "${tooLong.slice(0, 40)}…"`);
-        await call(sb.rpc('add_checklist', { p_task: id, p_title: f.title, p_items: items }));
-        go(here, items.length ? `Checklist added with ${items.length} item${items.length === 1 ? '' : 's'}.` : 'Checklist added.');
-    },
-    'add-item': async (f, form) => {
-        await call(sb.from('task_checklist_items').insert({ checklist_id: Number(form.dataset.checklist), content: f.content.trim() }));
-        go(here);
+        const added = await call(sb.rpc('add_checklist_items', { p_task: id, p_items: lines }));
+        go(here, `Added ${added} item${added === 1 ? '' : 's'}.`);
     },
     comment: async (f) => {
         await call(sb.rpc('add_comment', { p_task: id, p_comment: f.comment }));
@@ -186,10 +165,14 @@ content.querySelectorAll('form[data-action]').forEach((form) => {
     onSubmit(form, (fields) => actions[form.dataset.action](fields, form));
 });
 
-// Rename / edit / delete for checklists and items. RLS allows member+ and only
+// Ctrl+Enter in the add box submits it (plain Enter makes a new line).
+content.querySelector('#checklist-items')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) e.target.form.requestSubmit();
+});
+
+// Edit / delete for checklist items. RLS allows member+ and only
 // the text columns; the page reloads afterwards so progress stays correct.
 const TABLES = {
-    checklist: { table: 'task_checklists', column: 'title', noun: 'Checklist' },
     item: { table: 'task_checklist_items', column: 'content', noun: 'Item' },
 };
 
@@ -197,8 +180,7 @@ content.addEventListener('click', async (event) => {
     const del = event.target.closest('[data-delete]');
     if (del) {
         const kind = TABLES[del.dataset.delete];
-        const warning = del.dataset.delete === 'checklist' ? 'Delete this checklist and all its items?' : 'Delete this item?';
-        if (!confirm(warning)) return;
+        if (!confirm('Delete this item?')) return;
         try {
             const gone = await call(sb.from(kind.table).delete().eq('id', del.dataset.id).select('id'));
             if (gone.length === 0) throw new Error('You do not have permission to do that.');
@@ -212,7 +194,7 @@ content.addEventListener('click', async (event) => {
     const edit = event.target.closest('[data-edit]');
     if (!edit) return;
     const kind = TABLES[edit.dataset.edit];
-    const row = edit.closest('.checklist-head, .checklist-item');
+    const row = edit.closest('.checklist-item');
     const text = row.querySelector('[data-text]');
 
     // Swap the text for a small inline form: Enter saves, Esc cancels.
@@ -222,7 +204,7 @@ content.addEventListener('click', async (event) => {
     const input = form.querySelector('input');
     input.value = text.textContent;
     input.maxLength = Number(edit.dataset.max);
-    input.setAttribute('aria-label', `New ${kind.column === 'title' ? 'checklist name' : 'item text'}`);
+    input.setAttribute('aria-label', 'New item text');
     text.hidden = true;
     edit.parentElement.hidden = true;
     text.after(form);

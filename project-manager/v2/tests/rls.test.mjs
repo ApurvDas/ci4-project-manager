@@ -253,3 +253,17 @@ test('checklists: member+ renames and deletes; viewers cannot; ticks only via to
     const { data: left } = await as.developer.from('task_checklist_items').select('id').eq('checklist_id', list.id);
     assert.equal(left.length, 0);
 });
+
+test('add_checklist_items: one flat list per task, created on first use', async () => {
+    const wr = ids['Website Redesign'];
+    const tid = (await as.manager.rpc('save_task', { p_project: wr, p_task: null, p: { title: 'Flat list task', status: 'todo', priority: 'low' }, p_assignees: [], p_tags: [] })).data;
+
+    assert.equal(code(await as.tester.rpc('add_checklist_items', { p_task: tid, p_items: ['nope'] })), '42501'); // viewer
+    assert.equal((await as.developer.rpc('add_checklist_items', { p_task: tid, p_items: ['One', ' ', 'Two'] })).data, 2);
+    assert.equal((await as.developer.rpc('add_checklist_items', { p_task: tid, p_items: ['Three'] })).data, 1);
+
+    const { data: lists } = await as.developer.from('task_checklists').select('id, task_checklist_items(content, position)').eq('task_id', tid);
+    assert.equal(lists.length, 1, 'all items share one checklist');
+    const items = lists[0].task_checklist_items.sort((a, b) => a.position - b.position).map((i) => i.content);
+    assert.deepEqual(items, ['One', 'Two', 'Three']);
+});

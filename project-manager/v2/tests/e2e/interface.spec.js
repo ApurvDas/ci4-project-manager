@@ -35,29 +35,26 @@ test.describe('Checklist', () => {
         await expect(page.locator('[data-checklist-progress]')).toContainText('4/4');
     });
 
-    test('a pasted list becomes one checklist with every item', async ({ page }) => {
-        await page.fill('#checklist-title', 'Demo steps');
+    test('typed or pasted items go straight into the task checklist', async ({ page }) => {
         await page.fill('#checklist-items', ['- [ ] Driver login', '• Go online', '', '☐ Accept ride', '1. Complete ride'].join('\n'));
-        await page.click('button:has-text("Add checklist")');
-        await expect(page.locator('.alert-success')).toContainText('Checklist added with 4 items');
-        const list = page.locator('.checklist', { hasText: 'Demo steps' });
-        await expect(list.locator('.checklist-text')).toHaveText(['Driver login', 'Go online', 'Accept ride', 'Complete ride']);
+        await page.click('form[data-action="add-items"] button[type="submit"]');
+        await expect(page.locator('.alert-success')).toContainText('Added 4 items');
+        // Appended after the four seeded items, in pasted order, with no checklist names shown.
+        await expect(page.locator('.checklist-text')).toHaveText([
+            'Create login page', 'Add validation', 'Forgot password', 'Email verification',
+            'Driver login', 'Go online', 'Accept ride', 'Complete ride',
+        ]);
+        await expect(page.locator('.checklist-title')).toHaveCount(0);
         await expect(page.locator('[data-checklist-progress]')).toContainText('2/8');
     });
 
-    test('rename a checklist, edit an item and delete one', async ({ page }) => {
+    test('edit an item and delete one', async ({ page }) => {
         page.on('dialog', (d) => d.accept());
-        const list = page.locator('.checklist', { hasText: 'Authentication' });
-
-        await list.getByRole('button', { name: 'Rename checklist Authentication' }).click();
-        await list.locator('.checklist-edit input').fill('Auth flow');
-        await list.locator('.checklist-edit input').press('Enter');
-        await expect(page.locator('.alert-success')).toContainText('Checklist updated');
-        await expect(page.locator('.checklist-title').first()).toHaveText('Auth flow');
 
         await page.getByRole('button', { name: 'Edit Forgot password' }).click();
         await page.locator('.checklist-edit input').fill('Reset password');
-        await page.locator('.checklist-edit button[type="submit"]').click();
+        await page.locator('.checklist-edit input').press('Enter');
+        await expect(page.locator('.alert-success')).toContainText('Item updated');
         await expect(page.locator('.checklist-text', { hasText: 'Reset password' })).toBeVisible();
 
         await page.getByRole('button', { name: 'Delete Email verification' }).click();
@@ -72,6 +69,7 @@ test.describe('Checklist', () => {
         await expect(page.locator('.checklist-item')).not.toHaveCount(0);
         expect(await page.locator('[data-toggle-item]').count()).toBe(0);
         expect(await page.locator('.checklist-tools').count()).toBe(0);
+        expect(await page.locator('#checklist-items').count()).toBe(0);
     });
 });
 
