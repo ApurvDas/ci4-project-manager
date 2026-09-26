@@ -119,6 +119,13 @@ test.describe('Projects and tasks', () => {
         expect(await page.inputValue('#tag-color')).not.toBe('#6b7280');
     });
 
+    test('the dashboard shows the tags of your open tasks', async ({ page }) => {
+        await signIn(page, 'developer');
+        await page.goto('/dashboard.html');
+        const row = page.locator('.list-item', { hasText: 'Build authentication' });
+        await expect(row.locator('.list-item-tags .tag')).toHaveText(['Backend', 'Urgent']);
+    });
+
     test('a non-member gets the not-found page', async ({ page }) => {
         await signIn(page, 'designer');
         await page.goto('/project.html?id=4'); // Internal Wiki

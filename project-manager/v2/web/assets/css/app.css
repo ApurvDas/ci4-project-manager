@@ -1485,6 +1485,14 @@ button, input, select, textarea {
     color: var(--danger);
 }
 
+/* Tags under a list row's meta line (dashboard open tasks). */
+.list-item-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    margin-top: var(--space-2);
+}
+
 /* The suggestion row already sits inside padded card-body. */
 .tag-suggestions {
     padding: var(--space-2) 0 0;
@@ -1642,6 +1650,45 @@ button, input, select, textarea {
 
     .toolbar .btn {
         flex: 1;
+    }
+
+    /* Keep brand and account actions on one row: the PM mark is enough. */
+    .brand > span:last-child {
+        display: none;
+    }
+
+    /* Tighter stats, so the real content starts sooner. */
+    .stat-grid {
+        gap: var(--space-2);
+    }
+
+    .stat {
+        padding: var(--space-3);
+    }
+
+    .stat-value {
+        font-size: 1.35rem;
+    }
+
+    /* Stacked list rows: the aside spans the row so progress bars keep a width. */
+    .list-item-aside {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .list-item-aside .progress {
+        flex: 1;
+    }
+
+    /* Board: one near-full-width column at a time, swiped with snapping. */
+    .board {
+        grid-template-columns: repeat(4, 85%);
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .board-column {
+        scroll-snap-align: start;
     }
 }
 

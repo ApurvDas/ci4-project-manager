@@ -2,6 +2,11 @@ import { page, render, html, call, sb, humanise, dueState, badge, progress, toda
 
 const content = await page('Dashboard');
 const d = await call(sb.rpc('dashboard', { p_today: today(), p_now: nowTime() }));
+// Tags of the open tasks, fetched in one go and keyed by task id.
+const taskIds = d.myTasks.map((t) => t.id);
+const tagsByTask = new Map(taskIds.length
+    ? (await call(sb.from('tasks').select('id, tags(name, color)').in('id', taskIds))).map((t) => [t.id, t.tags])
+    : []);
 const pc = d.projectCounts;
 const tc = d.taskCounts;
 
@@ -43,6 +48,7 @@ render(content, html`
                         <div>
                             <div class="list-item-title"><a href="task.html?project=${t.project_id}&id=${t.id}">${t.title}</a></div>
                             <div class="list-item-meta"><span>${t.project_name}</span><span aria-hidden="true">·</span><span class="${dueClass}">${dueLabel}</span></div>
+                            ${tagsByTask.get(t.id)?.length ? html`<div class="list-item-tags">${tagsByTask.get(t.id).map((g) => html`<span class="tag"><span class="tag-swatch" style="background: ${g.color}"></span>${g.name}</span>`)}</div>` : ''}
                         </div>
                         <div class="list-item-aside">${badge('priority', t.priority)}${badge('status', t.status)}</div>
                     </li>`;
