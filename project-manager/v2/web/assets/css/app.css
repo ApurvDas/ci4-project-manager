@@ -1928,15 +1928,108 @@ input:checked:focus + .switch-left + .switch-right {
   outline-offset: 2px;
 }
 
-/* On the sign-in pages the brand is centred, so the switch sits top-right. */
+/* On the sign-in pages the brand is centred, so the clock and switch sit top-right. */
 .auth-shell {
   position: relative;
 }
 
-.auth-theme {
+.auth-corner {
   position: absolute;
   top: var(--space-4);
   right: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Analogue clock ----------------------------------------------------------------- */
+/* From Uiverse.io by escannord, redrawn in SVG and recoloured with the site's
+   tokens (light and dark). Floats in the bottom-right corner of every page so
+   it is always in view; the outer red arc fills as the day passes. Hands and
+   arc are driven by tickClocks() in app.js. */
+.clock {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  z-index: 50;
+  width: 96px;
+  height: 96px;
+  padding: 4px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  line-height: 0;
+  pointer-events: auto;
+}
+
+.clock svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Keep the last bit of every page clear of the floating clock. */
+body {
+  padding-bottom: 120px;
+}
+
+.clock__day-track {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 8;
+}
+
+.clock__day {
+  fill: none;
+  stroke: var(--danger);
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+
+.clock__face {
+  fill: var(--surface-2);
+  stroke: var(--border-strong);
+  stroke-width: 10;
+}
+
+@media (max-width: 620px) {
+  .clock {
+    right: var(--space-3);
+    bottom: var(--space-3);
+    width: 72px;
+    height: 72px;
+    padding: 3px;
+  }
+
+  body {
+    padding-bottom: 96px;
+  }
+}
+
+.clock__mark {
+  fill: var(--text-muted);
+}
+
+.clock__mark--major {
+  fill: var(--text);
+}
+
+.clock__hand--h {
+  fill: var(--text);
+}
+
+.clock__hand--m {
+  fill: var(--text-muted);
+}
+
+.clock__hand--s {
+  fill: var(--danger);
+}
+
+.clock__cap {
+  fill: var(--surface);
+  stroke: var(--danger);
+  stroke-width: 4;
 }
 
 /* Very small phones (≤380px): tighten the account links so they stay beside
@@ -2164,18 +2257,28 @@ input:checked:focus + .switch-left + .switch-right {
   transition: color 300ms;
 }
 
+/* The panel spans the whole button but is clipped to the right-hand strip;
+   hover unclips it (clip-path) while the icon glides to the centre
+   (transform). Neither animates a layout property, so no reflow per frame. */
 .btn-slide__icon {
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: var(--slide-width);
+  inset: 0;
+  background-color: var(--slide-panel);
+  color: var(--slide-ink);
+  clip-path: inset(0 0 0 calc(100% - var(--slide-width)));
+  transition: clip-path 300ms, background-color 300ms;
+}
+
+/* Full-width box with the icon centred; shifted right so the icon starts
+   centred in the strip (50% of this box = half the button's width). */
+.btn-slide__glyph {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--slide-panel);
-  color: var(--slide-ink);
-  transition: width 300ms, background-color 300ms;
+  transform: translateX(calc(50% - var(--slide-width) / 2));
+  transition: transform 300ms;
 }
 
 .btn-slide__icon svg {
@@ -2201,7 +2304,12 @@ input:checked:focus + .switch-left + .switch-right {
 
 .btn-slide:not(:disabled):hover .btn-slide__icon,
 .btn-slide:not(:disabled):focus-visible .btn-slide__icon {
-  width: 100%;
+  clip-path: inset(0);
+}
+
+.btn-slide:not(:disabled):hover .btn-slide__glyph,
+.btn-slide:not(:disabled):focus-visible .btn-slide__glyph {
+  transform: translateX(0);
 }
 
 .btn-slide:not(:disabled):active .btn-slide__icon {

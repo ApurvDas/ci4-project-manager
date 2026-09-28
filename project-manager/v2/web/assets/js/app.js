@@ -62,7 +62,7 @@ const ICONS = {
 // A bare line icon from the same set (for icon-only buttons).
 export const icon = (name, cls = 'icon') => html`<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${raw(ICONS[name])}</svg>`;
 
-export const slide = (label, icon) => html`<span class="btn-slide__text">${label}</span><span class="btn-slide__icon" aria-hidden="true"><svg viewBox="0 0 24 24">${raw(ICONS[icon])}</svg></span>`;
+export const slide = (label, icon) => html`<span class="btn-slide__text">${label}</span><span class="btn-slide__icon" aria-hidden="true"><span class="btn-slide__glyph"><svg viewBox="0 0 24 24">${raw(ICONS[icon])}</svg></span></span>`;
 
 export function render(el, content) {
     el.innerHTML = show(content);
@@ -251,6 +251,62 @@ function bindThemeSwitch() {
     });
 }
 
+// Analogue clock (Uiverse, escannord), redrawn as SVG in the site's colours and
+// shown floating in the bottom-right corner of every page: a ring, 12 marks
+// (bolder at 12/3/6/9), rounded hour and minute hands, a red second hand with
+// a tail and a capped centre, in the original's proportions. Around it, a red
+// arc fills as the day passes (midnight to midnight): "time passing away".
+// The hands are set from the real time on every frame, so the second hand
+// sweeps smoothly and continuously like a mechanical watch.
+const clockMarks = Array.from({ length: 12 }, (_, i) => {
+    const major = i % 3 === 0;
+    const w = major ? 6 : 3;
+    const h = major ? 24 : 14;
+    return html`<rect class="clock__mark ${major ? 'clock__mark--major' : ''}" x="${100 - w / 2}" y="${34 - h / 2}" width="${w}" height="${h}" rx="${w / 2}" transform="rotate(${i * 30} 100 100)"/>`;
+});
+const clock = () => html`<div class="clock" data-clock role="img" aria-label="Current time">
+    <svg viewBox="-16 -16 232 232" aria-hidden="true">
+        <circle class="clock__day-track" cx="100" cy="100" r="108"/>
+        <circle class="clock__day" data-day cx="100" cy="100" r="108" pathLength="100" stroke-dasharray="0 100" transform="rotate(-90 100 100)"/>
+        <circle class="clock__face" cx="100" cy="100" r="90"/>
+        ${clockMarks}
+        <rect class="clock__hand clock__hand--h" data-hand="h" x="96.5" y="60" width="7" height="44" rx="3.5"/>
+        <rect class="clock__hand clock__hand--m" data-hand="m" x="97.5" y="36" width="5" height="68" rx="2.5"/>
+        <rect class="clock__hand clock__hand--s" data-hand="s" x="98.5" y="30" width="3" height="88" rx="1.5"/>
+        <circle class="clock__cap" cx="100" cy="100" r="8"/>
+    </svg>
+</div>`;
+
+// Runs once per screen frame while the page is visible (browsers pause it in
+// background tabs, and it picks up the exact time again on return).
+function tickClocks() {
+    const now = new Date();
+    const sec = now.getSeconds() + now.getMilliseconds() / 1000;
+    const min = now.getMinutes() + sec / 60;
+    const hour = (now.getHours() % 12) + min / 60;
+    const angles = { h: hour * 30, m: min * 6, s: sec * 6 };
+    const dayGone = ((now.getHours() * 60 + min) / 1440) * 100; // % of today passed
+    const label = `Current time ${pad(now.getHours())}:${pad(now.getMinutes())}, ${Math.floor(dayGone)}% of today has passed`;
+    for (const el of document.querySelectorAll('[data-clock]')) {
+        for (const hand of el.querySelectorAll('[data-hand]')) {
+            hand.setAttribute('transform', `rotate(${angles[hand.dataset.hand].toFixed(2)} 100 100)`);
+        }
+        el.querySelector('[data-day]').setAttribute('stroke-dasharray', `${dayGone.toFixed(3)} 100`);
+        if (el.getAttribute('aria-label') !== label) {
+            el.setAttribute('aria-label', label);
+            el.title = `${Math.floor(dayGone)}% of today has passed · ${now.toLocaleString(undefined, { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}`;
+        }
+    }
+    requestAnimationFrame(tickClocks);
+}
+
+let clocksRunning = false;
+function startClocks() {
+    if (clocksRunning) return;
+    clocksRunning = true;
+    requestAnimationFrame(tickClocks);
+}
+
 // Letter-roll label (Uiverse, KINGFRESS) for the top-bar pills: two copies of
 // the word stacked in one line; on hover each letter rolls out downwards while
 // its twin rolls in from above, staggered letter by letter. Screen readers get
@@ -305,13 +361,15 @@ export async function page(title, { auth = true } = {}) {
                 <div id="content"><p class="text-muted">Loading…</p></div>
             </div>
         </main>
-        <footer class="app-footer"><div class="container">${footer()}</div></footer>`);
+        <footer class="app-footer"><div class="container">${footer()}</div></footer>
+        ${clock()}`);
 
     document.querySelector('[data-sign-out]')?.addEventListener('click', async () => {
         await sb.auth.signOut();
         go('login.html', 'You have been signed out.');
     });
     bindThemeSwitch();
+    startClocks();
     showFlash();
     return document.getElementById('content');
 }
@@ -322,7 +380,7 @@ export function authPage(title) {
     document.body.innerHTML = show(html`
         <a class="skip-link" href="#main-content">Skip to main content</a>
         <div class="auth-shell">
-            ${themeSwitch('auth-theme')}
+            <div class="auth-corner">${themeSwitch()}</div>
             <div class="auth-brand">${brand}</div>
             <main class="auth-body" id="main-content" tabindex="-1">
                 <div class="auth-card"><div class="card-body">
@@ -331,8 +389,10 @@ export function authPage(title) {
                 </div></div>
             </main>
             <footer class="auth-footer">${footer()}</footer>
-        </div>`);
+        </div>
+        ${clock()}`);
     bindThemeSwitch();
+    startClocks();
     showFlash();
     return document.getElementById('content');
 }

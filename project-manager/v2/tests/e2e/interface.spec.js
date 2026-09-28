@@ -215,6 +215,46 @@ test.describe('Accessibility', () => {
     });
 });
 
+test.describe('Analogue clock', () => {
+    // Angle of a hand, from its rotate(angle 100 100) transform.
+    const angleOf = (page, hand) => page.locator(`.clock [data-hand="${hand}"]`).first()
+        .evaluate((el) => parseFloat(el.getAttribute('transform').slice('rotate('.length)));
+
+    test('shows the real time on every page and the second hand keeps sweeping', async ({ page }) => {
+        await page.goto('/login.html');
+        await expect(page.locator('.clock')).toHaveCount(1);
+
+        await signIn(page, 'admin');
+        await page.goto('/dashboard.html');
+        const clock = page.locator('.clock');
+        await expect(clock).toHaveCount(1);
+        await expect(clock).toHaveCSS('position', 'fixed');
+
+        const now = await page.evaluate(() => {
+            const d = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            const dayGone = ((d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60) / 1440) * 100;
+            return {
+                label: `Current time ${pad(d.getHours())}:${pad(d.getMinutes())}, ${Math.floor(dayGone)}% of today has passed`,
+                minute: (d.getMinutes() + d.getSeconds() / 60) * 6,
+                dayGone,
+            };
+        });
+        await expect(clock).toHaveAttribute('aria-label', now.label);
+        expect(Math.abs((await angleOf(page, 'm')) - now.minute)).toBeLessThan(1);
+
+        // The day ring is filled to the share of today that has passed.
+        const filled = await page.locator('.clock [data-day]').evaluate((el) => parseFloat(el.getAttribute('stroke-dasharray')));
+        expect(Math.abs(filled - now.dayGone)).toBeLessThan(0.5);
+
+        // The second hand sweeps continuously: it moves between two readings a moment apart.
+        const first = await angleOf(page, 's');
+        await page.waitForTimeout(300);
+        const second = await angleOf(page, 's');
+        expect(second).not.toBe(first);
+    });
+});
+
 test.describe('Theme switch', () => {
     test('flips between light and dark, and remembers the choice', async ({ page }) => {
         await page.emulateMedia({ colorScheme: 'light' });
