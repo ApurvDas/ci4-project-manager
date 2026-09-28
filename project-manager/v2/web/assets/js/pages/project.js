@@ -1,5 +1,5 @@
 import {
-    page, render, html, call, sb, me, humanise, fmtDate, fmtDue, badge, idParam, notFound, projectAndRole, can, onSubmit, go, ACTIVITY, activityItem, taskLate, projectLate, overdueBadge, overdueBanner, slide,
+    page, render, html, call, sb, me, humanise, fmtDate, fmtDue, badge, idParam, notFound, projectAndRole, can, onSubmit, go, ACTIVITY, activityItem, taskLate, projectLate, overdueBadge, overdueBanner, slide, icon,
 } from '../app.js';
 
 const STATUSES = ['todo', 'in_progress', 'review', 'completed'];
@@ -36,12 +36,8 @@ const border = 'border-top: 1px solid var(--border);';
 const canRemove = (m) => m.role !== 'owner' && (isOwner || (canManage && (m.role !== 'manager' || m.user_id === me.id)));
 const canChangeRole = (m) => isOwner && m.role !== 'owner';
 
-// Animated plus (Uiverse, mRcOol7): the add button beside each quick-add tag.
-const plusIcon = html`<svg class="plus-icon" viewBox="0 0 24 24" aria-hidden="true">
-    <path stroke-width="1.8" d="M12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22Z"></path>
-    <path stroke-width="1.8" d="M8 12H16"></path>
-    <path stroke-width="1.8" d="M12 16V8"></path>
-</svg>`;
+// Plus-circle (Heroicons outline) for the quick-add tag buttons, animated by .plus-btn.
+const plusIcon = icon('plus-circle', 'plus-icon');
 
 // Ready-made tags offered as one-click chips (only those the project lacks).
 const SUGGESTED_TAGS = [

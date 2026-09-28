@@ -2059,6 +2059,7 @@ input:checked:focus + .switch-left + .switch-right {
 .plus-icon {
   width: 26px;
   height: 26px;
+  stroke-width: 1.5; /* Heroicons outline weight */
   stroke: var(--text-muted);
   fill: none;
   transition: fill 300ms, stroke 300ms;
@@ -2183,7 +2184,7 @@ input:checked:focus + .switch-left + .switch-right {
   flex-shrink: 0;
   fill: none;
   stroke: currentColor;
-  stroke-width: 2;
+  stroke-width: 1.5; /* Heroicons outline weight */
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -2283,11 +2284,11 @@ input:checked:focus + .switch-left + .switch-right {
 }
 
 .box-button__face .icon {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 2;
+  stroke-width: 1.5; /* Heroicons outline weight */
   stroke-linecap: round;
   stroke-linejoin: round;
 }
