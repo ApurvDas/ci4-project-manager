@@ -110,6 +110,40 @@ test('only the owner archives, including through the edit form', async () => {
     assert.ifError((await as.admin.rpc('set_project_status', { p_project: wr, p_status: 'active' })).error);
 });
 
+test('settle_projects completes a past-deadline project only when all its work is done', async () => {
+    const wiki = ids['Internal Wiki'];            // 100% done, due 45 days ago, seeded as completed
+    const mc = ids['Marketing Campaign'];         // 33% done, due 3 days ago, on hold
+    const status = async (id, who = as.admin) => (await who.from('projects').select('status').eq('id', id).single()).data.status;
+    const { data: w } = await as.admin.from('projects').select('*').eq('id', wiki).single();
+    const reopen = (changes) => as.admin.rpc('update_project', { p_project: wiki, p: { ...w, status: 'active', ...changes } });
+
+    const anon = createClient(URL, ANON, { auth: { persistSession: false } });
+    assert.ok((await anon.rpc('settle_projects')).error);
+
+    // Not due yet: left alone, however finished it is.
+    assert.ifError((await reopen({ due_date: '2099-01-01' })).error);
+    assert.ifError((await as.designer.rpc('settle_projects')).error);
+    assert.equal(await status(wiki), 'active');
+
+    // Archived stays archived.
+    assert.ifError((await as.admin.rpc('set_project_status', { p_project: wiki, p_status: 'archived' })).error);
+    assert.ifError((await as.designer.rpc('settle_projects')).error);
+    assert.equal(await status(wiki), 'archived');
+
+    // Past due and 100%: completed, logged as the system. With work left, untouched.
+    assert.ifError((await reopen({})).error);
+    assert.ifError((await as.designer.rpc('settle_projects')).error);
+    assert.equal(await status(wiki), 'completed');
+    assert.equal(await status(mc, as.manager), 'on_hold');
+    const { data: log } = await as.admin.from('activity_logs').select('user_id, description').eq('project_id', wiki).eq('action', 'auto');
+    assert.equal(log.length, 1);
+    assert.equal(log[0].user_id, null);
+    assert.match(log[0].description, /marked the project complete/);
+
+    // Nothing left to settle, so a second run changes nothing.
+    assert.equal((await as.designer.rpc('settle_projects')).data, 0);
+});
+
 test('save_task: assignees must be members, tags from this project; diff is logged', async () => {
     const wr = ids['Website Redesign'];
     const fields = { title: 'Write tests', status: 'todo', priority: 'low' };

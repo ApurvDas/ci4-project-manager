@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { signIn, resetData } from './helpers.js';
+import { signIn, resetData, runSql } from './helpers.js';
 
 test.describe('Checklist', () => {
     const TASK = '/task.html?project=1&id=2'; // Build authentication: 4 items, 2 ticked
@@ -156,6 +156,32 @@ test.describe('Projects and tasks', () => {
 
         await late.getByRole('link', { name: 'Accessibility audit' }).click();
         await expect(page.locator('.alert-urgent')).toContainText('This task is overdue by 1 day');
+    });
+
+    test('a past-deadline project is overdue only while work remains', async ({ page }) => {
+        // Internal Wiki: all work done (100%) and long past due, but still marked Active.
+        // Marketing Campaign: past due with tasks left (33%).
+        runSql("update public.projects set status = 'active' where name = 'Internal Wiki'");
+        await signIn(page, 'IronWarrior'); // the site admin sees every project
+
+        await page.goto('/projects.html');
+        await expect(page.locator('.list-item', { hasText: 'Internal Wiki' }).locator('.badge-overdue')).toHaveCount(0);
+        await expect(page.locator('.list-item', { hasText: 'Marketing Campaign' }).locator('.badge-overdue')).toHaveCount(1);
+
+        await page.goto('/project.html?id=4');
+        await expect(page.locator('h1')).toHaveText('Internal Wiki');
+        await expect(page.locator('.alert-urgent')).toHaveCount(0);
+        await page.goto('/project.html?id=3');
+        await expect(page.locator('.alert-urgent')).toContainText('This project is overdue');
+    });
+
+    test('a finished project past its deadline is completed automatically, and the log says so', async ({ page }) => {
+        runSql("update public.projects set status = 'active' where name = 'Internal Wiki'; select public.settle_projects();");
+        await signIn(page, 'admin');
+        await page.goto('/project.html?id=4');
+        await expect(page.locator('.list-item-meta .badge').first()).toHaveText('Completed');
+        await expect(page.locator('.alert-urgent')).toHaveCount(0);
+        await expect(page.locator('.activity-body', { hasText: 'marked the project complete' }).first()).toContainText('Project Manager');
     });
 
     test('progress bars fill to their percentage', async ({ page }) => {

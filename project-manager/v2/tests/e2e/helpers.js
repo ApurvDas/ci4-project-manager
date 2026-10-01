@@ -10,10 +10,14 @@ const seed = readFileSync(new URL('../../supabase/seed.sql', import.meta.url), '
 // `supabase db reset` restarts containers). Ids restart, so project 1 and
 // task 2 are always the same seeded rows.
 export function resetData() {
-    const sql = `
+    runSql(`
         truncate auth.users cascade;
         truncate public.projects, public.activity_logs, public.notifications restart identity cascade;
-        ${seed}`;
+        ${seed}`);
+}
+
+// Run SQL against the local database, for setting up a state the UI can't reach.
+export function runSql(sql) {
     execFileSync('docker', ['exec', '-i', 'supabase_db_project-manager', 'psql', '-U', 'postgres', '-q', '-v', 'ON_ERROR_STOP=1'], {
         input: sql,
         stdio: ['pipe', 'ignore', 'pipe'],

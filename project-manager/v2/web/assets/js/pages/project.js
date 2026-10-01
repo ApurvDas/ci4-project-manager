@@ -77,7 +77,7 @@ render(content, html`
                 </form>` : ''}
         </div>
     </div>
-    ${projectLate(project) ? overdueBanner('project', project.due_date, project.due_time) : ''}
+    ${projectLate({ ...project, progress: percent }) ? overdueBanner('project', project.due_date, project.due_time) : ''}
 
     ${project.description ? html`<section class="card mb-4"><div class="card-body"><p class="pre-line">${project.description}</p></div></section>` : ''}
 

@@ -106,9 +106,10 @@ export const fmtDue = (date, time) => (date ? fmtDate(date) + (time ? `, ${hhmm(
 export const isOverdue = (date, time) => !!date && (date < today() || (date === today() && !!time && time < nowTime()));
 
 // Past its deadline and not finished: completed tasks and completed or
-// archived projects never count as late.
+// archived projects never count as late. A project whose work is all done
+// (progress 100%) isn't late either, even if nobody has marked it complete yet.
 export const taskLate = (t) => t.status !== 'completed' && isOverdue(t.due_date, t.due_time);
-export const projectLate = (p) => !['completed', 'archived'].includes(p.status) && isOverdue(p.due_date, p.due_time);
+export const projectLate = (p) => !['completed', 'archived'].includes(p.status) && !(p.progress >= 100) && isOverdue(p.due_date, p.due_time);
 
 // "Overdue by 3 days" / "Overdue since 17:30 today".
 export function overdueText(date, time) {
@@ -153,7 +154,7 @@ export const ACTIVITY = '*, profile:profiles(username)';
 
 // One activity entry with its field diff. A creation has no old value, so only the new one shows.
 export function activityItem(entry) {
-    const who = entry.profile?.username;
+    const who = entry.profile?.username ?? (entry.action === 'auto' ? 'Project Manager' : null); // 'auto' = the system acted
     const changes = Object.entries(entry.new_values ?? {});
     return html`<div class="activity-item">
         <span class="avatar" aria-hidden="true">${(who ?? '?')[0]}</span>
