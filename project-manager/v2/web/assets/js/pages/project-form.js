@@ -1,5 +1,6 @@
 // New project (no ?id) or edit an existing one (?id=N, manager+).
-import { page, render, html, call, sb, humanise, idParam, onSubmit, go, notFound, projectAndRole, can, dueTimeField, slide } from '../app.js';
+import { page, render, html, humanise, idParam, canonical, onSubmit, go, notFound, projectAndRole, can, dueTimeField, slide } from '../app.js';
+import { mutate } from '../store.js';
 
 const STATUSES = ['planning', 'active', 'on_hold', 'completed', 'archived'];
 const PRIORITIES = ['low', 'medium', 'high', 'critical'];
@@ -14,6 +15,7 @@ if (id) {
         await notFound(content);
     }
     project = found.project;
+    canonical('id', project.id);
 }
 
 const options = (values, selected) => values.map((v) => html`<option value="${v}" ${v === selected ? 'selected' : ''}>${humanise(v)}</option>`);
@@ -64,10 +66,12 @@ render(content, html`
 
 onSubmit(content.querySelector('form'), async (fields) => {
     if (id) {
-        await call(sb.rpc('update_project', { p_project: id, p: fields }));
+        // The values the form started from, so the server can tell which fields this edit really changed.
+        const { name, description, status, priority, start_date, due_date, due_time } = project;
+        await mutate('updateProject', { id, fields, base: { name, description, status, priority, start_date, due_date, due_time } });
         go(`project.html?id=${id}`, 'Project updated.');
     } else {
-        const newId = await call(sb.rpc('create_project', { p: fields }));
+        const newId = await mutate('createProject', { fields });
         go(`project.html?id=${newId}`, 'Project created.');
     }
 });

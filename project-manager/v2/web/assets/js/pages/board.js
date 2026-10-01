@@ -1,20 +1,14 @@
-import { page, render, html, call, sb, humanise, fmtShort, isOverdue, idParam, notFound, projectAndRole, can, badge, taskLate, overdueBadge, slide } from '../app.js';
+import { page, render, html, humanise, fmtShort, idParam, canonical, notFound, can, badge, taskLate, overdueBadge, slide } from '../app.js';
 import { enableBoard } from '../board.js';
+import { read, live, mutate } from '../store.js';
+import * as q from '../queries.js';
 
 const STATUSES = ['todo', 'in_progress', 'review', 'completed'];
 
 const id = idParam('project');
 const content = await page('Board');
-const { project, role } = id ? await projectAndRole(id) : {};
-if (!project) await notFound(content);
-document.title = `Board · ${project.name} · Project Manager`;
 
-const tasks = await call(sb.from('tasks')
-    .select('id, title, status, priority, due_date, due_time, position, tags(name, color), task_assignees(profile:profiles(username))')
-    .eq('project_id', id).order('position').order('id'));
-const canWrite = can(role, 'member');
-
-const card = (t) => {
+const card = (t, canWrite) => {
     const overdue = taskLate(t);
     const people = t.task_assignees.map((a) => a.profile.username);
     return html`<article class="board-card ${overdue ? 'is-late' : ''}" data-task-id="${t.id}" ${canWrite ? html`draggable="true"` : ''}>
@@ -28,28 +22,42 @@ const card = (t) => {
     </article>`;
 };
 
-render(content, html`
-    <div class="page-header-row">
-        <div>
-            <h1>Board</h1>
-            <p class="text-muted">In <a href="project.html?id=${id}">${project.name}</a></p>
-        </div>
-        <div class="toolbar">
-            <a class="btn btn-secondary" href="tasks.html?project=${id}">List view</a>
-            ${canWrite ? html`<a class="btn btn-primary btn-slide" href="task-form.html?project=${id}">${slide('New task', 'plus')}</a>` : ''}
-        </div>
-    </div>
-    ${canWrite ? '' : html`<div class="alert alert-info mb-4" role="status">You have read-only access to this project, so cards cannot be moved.</div>`}
-    <div class="board" data-board data-can-write="${canWrite ? '1' : '0'}">
-        ${STATUSES.map((status) => {
-            const column = tasks.filter((t) => t.status === status);
-            return html`<section class="board-column" data-status="${status}">
-                <header class="board-column-head"><h2>${humanise(status)}</h2><span class="badge" data-column-count>${column.length}</span></header>
-                <div class="board-dropzone" data-dropzone>${column.map(card)}</div>
-            </section>`;
-        })}
-    </div>
-    <p class="board-status" data-board-status role="status" aria-live="polite"></p>`);
+function view(data) {
+    if (!data) return notFound(content);
+    const { project, role, board: tasks } = data;
+    document.title = `Board · ${project.name} · Project Manager`;
+    canonical('project', project.id);
+    const canWrite = can(role, 'member');
 
-enableBoard(content.querySelector('[data-board]'), (taskId, status, position) =>
-    call(sb.rpc('move_task', { p_task: Number(taskId), p_status: status, p_position: position })));
+    render(content, html`
+        <div class="page-header-row">
+            <div>
+                <h1>Board</h1>
+                <p class="text-muted">In <a href="project.html?id=${id}">${project.name}</a></p>
+            </div>
+            <div class="toolbar">
+                <a class="btn btn-secondary" href="tasks.html?project=${id}">List view</a>
+                ${canWrite ? html`<a class="btn btn-primary btn-slide" href="task-form.html?project=${id}">${slide('New task', 'plus')}</a>` : ''}
+            </div>
+        </div>
+        ${canWrite ? '' : html`<div class="alert alert-info mb-4" role="status">You have read-only access to this project, so cards cannot be moved.</div>`}
+        <div class="board" data-board data-can-write="${canWrite ? '1' : '0'}">
+            ${STATUSES.map((status) => {
+                const column = tasks.filter((t) => t.status === status);
+                return html`<section class="board-column" data-status="${status}">
+                    <header class="board-column-head"><h2>${humanise(status)}</h2><span class="badge" data-column-count>${column.length}</span></header>
+                    <div class="board-dropzone" data-dropzone>${column.map((t) => card(t, canWrite))}</div>
+                </section>`;
+            })}
+        </div>
+        <p class="board-status" data-board-status role="status" aria-live="polite"></p>`);
+
+    // The card is already moved on screen; it counts as saved once the server has it (or, offline, once
+    // it is queued), so a reload shows it.
+    enableBoard(content.querySelector('[data-board]'), (taskId, status, position) => feed.quiet(async () => {
+        await mutate('moveTask', { task: Number(taskId), status, position });
+    }));
+}
+
+const feed = live(content, () => (id ? read(q.tasksPage, id) : null), view);
+await feed;

@@ -60,6 +60,48 @@ Free-tier notes: a Supabase project pauses after about a week without activity (
 dashboard), and the built-in email sender is limited to a few emails an hour — add your own SMTP
 under Authentication → Emails if you need more.
 
+## Desktop app (Windows)
+
+The same pages, in their own window: a small installer (it uses the WebView2 that Windows already
+has), a tray icon whose tooltip shows the running timer, Windows notifications, automatic updates,
+and the full offline editing the website has. It is a thin [Tauri](https://tauri.app) shell in
+`desktop-app/` around `web/`, so web and desktop share one UI and one codebase.
+
+**Install:** download the `.exe` from the repository's **Releases** page and run it (it installs for
+your user, no admin needed). The installer is not code-signed, so Windows SmartScreen warns the first
+time: choose **More info → Run anyway**. After that the app offers updates itself at start-up.
+
+**Size and memory:** the installer is about 2 MB and the program 5 MB. Idle on the sign-in page, the
+app (its process plus the seven WebView2 processes it starts) used about 170 MB of private memory,
+against about 315 MB for Chrome showing the same page in a fresh profile (Windows 10, measured with
+Task Manager's counters on 2026-10-01; your numbers will vary).
+
+**Behaviour:** closing the window hides it to the tray (so the timer and reminders keep going);
+**Quit** in the tray menu really exits. Tray → **Stop timer** stops the running timer. A toast
+appears for each new notification and, once, for each of your open tasks due within the hour. Sign-in
+by email link and password reset happen on the website: those links open it in your browser.
+
+**Build it yourself** (needs [Rust](https://rustup.rs) and the Visual Studio C++ build tools):
+
+```bash
+npm run desktop:dev      # the app, pointed at http://localhost:8123 (starts the dev server for you)
+npm run desktop:build    # an installer in desktop-app/src-tauri/target/release/bundle/nsis/
+```
+
+**Release it:** the *Desktop app* workflow builds the installer in GitHub Actions and publishes it
+with the files the updater reads.
+
+1. Add the Actions **variables** `SUPABASE_URL` and `SUPABASE_ANON_KEY` (the same ones the Pages deploy uses).
+2. Add the **secrets** `TAURI_SIGNING_PRIVATE_KEY` (the content of the updater's private key) and
+   `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` (empty if none). Make a key pair with
+   `npx tauri signer generate -w ~/.tauri/pm-updater.key`, keep the private half out of the repository,
+   and put the public half in `desktop-app/src-tauri/tauri.conf.json` (`plugins.updater.pubkey`).
+   Lose the private key and installed copies can never be updated again.
+3. Bump `version` in `desktop-app/src-tauri/tauri.conf.json` and `Cargo.toml`, then push a tag:
+   `git tag desktop-v0.1.1 && git push origin desktop-v0.1.1`.
+
+The updater looks for `latest.json` on the repository's **latest** release, so keep desktop releases as the latest one.
+
 ## What changed from v1
 
 - Soft deletes are gone: deleting a project, task or comment removes it (history rows survive).

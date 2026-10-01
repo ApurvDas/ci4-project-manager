@@ -154,15 +154,15 @@ test('save_task: assignees must be members, tags from this project; diff is logg
 
     const created = await as.developer.rpc('save_task', { p_project: wr, p_task: null, p: fields, p_assignees: [as.designer.uid], p_tags: [] });
     assert.ifError(created.error);
-    const assigned = await as.designer.from('notifications').select('id').eq('related_id', created.data).eq('type', 'task_assigned');
+    const assigned = await as.designer.from('notifications').select('id').eq('related_id', created.data.id).eq('type', 'task_assigned');
     assert.equal(assigned.data.length, 1);
 
-    const updated = await as.developer.rpc('save_task', { p_project: wr, p_task: created.data, p: { ...fields, status: 'completed' }, p_assignees: [as.designer.uid], p_tags: [] });
+    const updated = await as.developer.rpc('save_task', { p_project: wr, p_task: created.data.id, p: { ...fields, status: 'completed' }, p_assignees: [as.designer.uid], p_tags: [] });
     assert.ifError(updated.error);
-    const { data: task } = await as.developer.from('tasks').select('completed_at').eq('id', created.data).single();
+    const { data: task } = await as.developer.from('tasks').select('completed_at').eq('id', created.data.id).single();
     assert.ok(task.completed_at, 'completed_at set');
     const { data: log } = await as.developer.from('activity_logs').select('action, old_values, new_values')
-        .eq('entity_id', created.data).eq('action', 'complete').single();
+        .eq('entity_id', created.data.id).eq('action', 'complete').single();
     assert.deepEqual(log.new_values, { status: 'completed' });
     assert.deepEqual(log.old_values, { status: 'todo' });
 });
@@ -234,7 +234,7 @@ test('a site admin has owner-level access everywhere; nobody can grant it to the
 test('deadline time: saved, optional, ignored without a date, and not logged as a change when unchanged', async () => {
     const wr = ids['Website Redesign'];
     const fields = { title: 'Timed task', status: 'todo', priority: 'low', due_date: '2030-01-15', due_time: '17:30' };
-    const tid = (await as.manager.rpc('save_task', { p_project: wr, p_task: null, p: fields, p_assignees: [], p_tags: [] })).data;
+    const tid = (await as.manager.rpc('save_task', { p_project: wr, p_task: null, p: fields, p_assignees: [], p_tags: [] })).data.id;
     const { data: saved } = await as.manager.from('tasks').select('due_date, due_time').eq('id', tid).single();
     assert.deepEqual(saved, { due_date: '2030-01-15', due_time: '17:30:00' });
 
@@ -297,11 +297,11 @@ test('checklists: member+ renames and deletes; viewers cannot; ticks only via to
 
 test('add_checklist_items: one flat list per task, created on first use', async () => {
     const wr = ids['Website Redesign'];
-    const tid = (await as.manager.rpc('save_task', { p_project: wr, p_task: null, p: { title: 'Flat list task', status: 'todo', priority: 'low' }, p_assignees: [], p_tags: [] })).data;
+    const tid = (await as.manager.rpc('save_task', { p_project: wr, p_task: null, p: { title: 'Flat list task', status: 'todo', priority: 'low' }, p_assignees: [], p_tags: [] })).data.id;
 
     assert.equal(code(await as.tester.rpc('add_checklist_items', { p_task: tid, p_items: ['nope'] })), '42501'); // viewer
-    assert.equal((await as.developer.rpc('add_checklist_items', { p_task: tid, p_items: ['One', ' ', 'Two'] })).data, 2);
-    assert.equal((await as.developer.rpc('add_checklist_items', { p_task: tid, p_items: ['Three'] })).data, 1);
+    assert.equal((await as.developer.rpc('add_checklist_items', { p_task: tid, p_items: ['One', ' ', 'Two'] })).data.added, 2);
+    assert.equal((await as.developer.rpc('add_checklist_items', { p_task: tid, p_items: ['Three'] })).data.added, 1);
 
     const { data: lists } = await as.developer.from('task_checklists').select('id, task_checklist_items(content, position)').eq('task_id', tid);
     assert.equal(lists.length, 1, 'all items share one checklist');
@@ -372,4 +372,232 @@ test('search: prefix matches across tasks, comments and checklists, only in visi
     assert.equal((await as.designer.rpc('search', { p_query: 'runbooks' })).data.length, 0);
     assert.ok((await as.developer.rpc('search', { p_query: 'runbooks' })).data.length > 0);
     assert.deepEqual((await as.developer.rpc('search', { p_query: '  !! ' })).data, []);
+});
+
+// ---------------------------------------------------------------- local copy and sync
+
+// The tables a pull returns rows for, as the client's local snapshot.
+const TABLES = ['profiles', 'projects', 'project_members', 'tasks', 'task_assignees', 'tags', 'task_tags', 'task_comments',
+    'task_checklists', 'task_checklist_items', 'time_entries', 'notifications', 'activity_logs'];
+const pull = async (who, since = null) => {
+    const { data, error } = await who.rpc('sync_pull', { p_since: since });
+    assert.ifError(error);
+    return data;
+};
+const snapshot = (data) => ({ me: data.me, ...Object.fromEntries(TABLES.map((t) => [t, data[t]])) });
+
+test('sync_pull: only what the caller can see, plus who they are and which projects are visible', async () => {
+    const dev = await pull(as.developer);
+    assert.equal(dev.me.username, 'developer');
+    assert.deepEqual(dev.projects.map((p) => p.id).sort(), dev.visibleProjects.slice().sort());
+    assert.ok(!dev.visibleProjects.includes(ids['Marketing Campaign']), 'developer is not in Marketing Campaign');
+    assert.ok(dev.visibleProjects.includes(ids['Internal Wiki']));
+    assert.ok(dev.tasks.every((t) => dev.visibleProjects.includes(t.project_id)));
+    assert.ok(dev.notifications.every((n) => n.user_id === as.developer.uid), 'own notifications only');
+    assert.equal((await pull(as.designer)).projects.some((p) => p.id === ids['Internal Wiki']), false);
+    const anon = createClient(URL, ANON, { auth: { persistSession: false } });
+    assert.ok((await anon.rpc('sync_pull')).error, 'anonymous callers get nothing');
+});
+
+test('sync_pull: p_since returns only recent rows, and the cursor is the server clock', async () => {
+    const first = await pull(as.developer);
+    assert.ok(Date.parse(first.now) > Date.now() - 60_000);
+    const later = await pull(as.developer, new Date(Date.now() + 3_600_000).toISOString()); // an hour ahead: nothing is newer
+    for (const t of ['projects', 'tasks', 'task_comments', 'activity_logs', 'deletions']) assert.deepEqual(later[t], [], t);
+    assert.equal(later.visibleProjects.length, first.visibleProjects.length);
+});
+
+test('the local queries give the same answers as the database (dashboard, progress, role)', async () => {
+    const { dashboard, progress, role } = await import('../web/assets/js/queries.js');
+    const today = new Date().toISOString().slice(0, 10);
+    const now = new Date().toISOString().slice(11, 19);
+    for (const name of ['admin', 'manager', 'developer', 'designer', 'tester', 'ironwarrior']) {
+        const who = as[name];
+        const s = snapshot(await pull(who));
+        const server = (await who.rpc('dashboard', { p_today: today, p_now: now })).data;
+        const local = dashboard(s, today, now);
+        const brief = (list) => list.map((p) => [p.id, p.status, p.progress, p.role, p.is_member]);
+        assert.deepEqual(brief(local.myProjects), brief(server.myProjects), `${name}: my projects`);
+        assert.deepEqual(brief(local.otherProjects), brief(server.otherProjects), `${name}: other projects`);
+        assert.deepEqual(local.projectCounts, server.projectCounts, `${name}: project counts`);
+        assert.deepEqual(local.taskCounts, server.taskCounts, `${name}: task counts`);
+        assert.deepEqual(local.myTasks.map((t) => t.id), server.myTasks.map((t) => t.id), `${name}: my tasks`);
+        assert.deepEqual(local.notifications.map((n) => n.id), server.notifications.map((n) => n.id), `${name}: notifications`);
+        assert.equal(local.unread, server.unread, `${name}: unread`);
+        for (const p of s.projects) {
+            assert.equal(progress(s, p.id), (await who.rpc('project_progress', { p_project: p.id })).data, `${name}: progress ${p.name}`);
+            assert.equal(role(s, p.id), (await who.rpc('my_project_role', { p_project: p.id })).data, `${name}: role in ${p.name}`);
+        }
+    }
+});
+
+test('deletions are announced to people who can see the project, and nobody else', async () => {
+    const wiki = ids['Internal Wiki'];
+    const { data: tag } = await as.admin.from('tags').select('id').eq('project_id', wiki).single();
+    assert.ifError((await as.admin.from('tags').delete().eq('id', tag.id)).error);
+    const mine = (data) => data.deletions.filter((d) => d.table_name === 'tags' && d.row_id === String(tag.id));
+    assert.equal(mine(await pull(as.developer)).length, 1, 'a member sees it');
+    assert.equal(mine(await pull(as.designer)).length, 0, 'a non-member does not');
+});
+
+test('a removed member stops seeing the project: it leaves visibleProjects', async () => {
+    const wiki = ids['Internal Wiki'];
+    assert.ok((await pull(as.developer)).visibleProjects.includes(wiki));
+    assert.ifError((await as.admin.rpc('remove_member', { p_project: wiki, p_user: as.developer.uid })).error);
+    const after = await pull(as.developer);
+    assert.ok(!after.visibleProjects.includes(wiki));
+    assert.equal(after.projects.some((p) => p.id === wiki), false);
+});
+
+// ---------------------------------------------------------------- offline writes
+
+const uuid = () => crypto.randomUUID();
+const taskFields = (row) => ({ title: row.title, description: row.description, status: row.status, priority: row.priority,
+    start_date: row.start_date, due_date: row.due_date, due_time: row.due_time });
+const newTask = async (title = 'Merge me') => {
+    const wr = ids['Website Redesign'];
+    const { data } = await as.manager.rpc('save_task', { p_project: wr, p_task: null,
+        p: { title, status: 'todo', priority: 'low', due_date: '2030-01-01' }, p_assignees: [], p_tags: [] });
+    const { data: row } = await as.manager.from('tasks').select('*').eq('id', data.id).single();
+    return row;
+};
+
+test('creates are safe to retry: the same client id never makes a second row', async () => {
+    const wr = ids['Website Redesign'];
+    const cid = uuid();
+    const call = () => as.developer.rpc('save_task', { p_project: wr, p_task: null, p: { title: 'Retried task', status: 'todo', priority: 'low' },
+        p_assignees: [], p_tags: [], p_client_id: cid });
+    const first = (await call()).data.id;
+    assert.equal((await call()).data.id, first);
+    assert.equal((await as.developer.from('tasks').select('id').eq('client_id', cid)).data.length, 1);
+
+    const pc = uuid();
+    const proj = (await as.developer.rpc('create_project', { p: { name: 'Retried project' }, p_client_id: pc })).data;
+    assert.equal((await as.developer.rpc('create_project', { p: { name: 'Retried project' }, p_client_id: pc })).data, proj);
+
+    const comment = uuid();
+    const c1 = (await as.developer.rpc('add_comment', { p_task: first, p_comment: 'Once', p_client_id: comment })).data;
+    assert.equal((await as.developer.rpc('add_comment', { p_task: first, p_comment: 'Once', p_client_id: comment })).data, c1);
+
+    const items = [uuid(), uuid()];
+    const add = () => as.developer.rpc('add_checklist_items', { p_task: first, p_items: ['A', 'B'], p_client_ids: items, p_list_client_id: uuid() });
+    const a1 = (await add()).data;
+    const a2 = (await add()).data;
+    assert.equal(a1.added, 2);
+    assert.equal(a2.added, 0, 'a retry inserts nothing');
+    assert.deepEqual(a2.ids, a1.ids);
+
+    const log = uuid();
+    const l1 = (await as.developer.rpc('log_time', { p_task: first, p_minutes: 15, p_client_id: log })).data;
+    assert.equal((await as.developer.rpc('log_time', { p_task: first, p_minutes: 15, p_client_id: log })).data, l1);
+    const timer = uuid();
+    const t1 = (await as.developer.rpc('start_timer', { p_task: first, p_client_id: timer })).data;
+    assert.equal((await as.developer.rpc('start_timer', { p_task: first, p_client_id: timer })).data, t1);
+    await as.developer.rpc('stop_timer');
+});
+
+test('a task edit keeps both sides when different fields changed', async () => {
+    const wr = ids['Website Redesign'];
+    const row = await newTask();
+    const base = { ...taskFields(row), assignees: [], tags: [] };
+
+    // The manager changes the priority; the developer, working from the older copy, changes the status.
+    const a = await as.manager.rpc('save_task', { p_project: wr, p_task: row.id, p: { ...taskFields(row), priority: 'high' },
+        p_assignees: [], p_tags: [], p_base: base, p_edited_at: new Date().toISOString() });
+    assert.deepEqual([a.data.overwritten, a.data.lost], [[], []]);
+    const b = await as.developer.rpc('save_task', { p_project: wr, p_task: row.id, p: { ...taskFields(row), status: 'review' },
+        p_assignees: [], p_tags: [], p_base: base, p_edited_at: new Date().toISOString() });
+    assert.deepEqual([b.data.overwritten, b.data.lost], [[], []]);
+
+    const { data: now } = await as.manager.from('tasks').select('priority, status').eq('id', row.id).single();
+    assert.deepEqual(now, { priority: 'high', status: 'review' });
+});
+
+test('a task edit on the same field: the newer edit wins and both sides are told', async () => {
+    const wr = ids['Website Redesign'];
+    const row = await newTask('Contested');
+    const base = { ...taskFields(row), assignees: [], tags: [] };
+    await as.manager.rpc('save_task', { p_project: wr, p_task: row.id, p: { ...taskFields(row), title: 'Manager title' },
+        p_assignees: [], p_tags: [], p_base: base, p_edited_at: new Date().toISOString() });
+
+    // An older edit (made an hour ago, offline) loses.
+    const older = await as.developer.rpc('save_task', { p_project: wr, p_task: row.id, p: { ...taskFields(row), title: 'Developer title' },
+        p_assignees: [], p_tags: [], p_base: base, p_edited_at: new Date(Date.now() - 3_600_000).toISOString() });
+    assert.deepEqual(older.data.lost, [{ field: 'title', yours: 'Developer title' }]);
+    assert.equal((await as.manager.from('tasks').select('title').eq('id', row.id).single()).data.title, 'Manager title');
+
+    // A newer one wins and reports what it replaced.
+    const newer = await as.developer.rpc('save_task', { p_project: wr, p_task: row.id, p: { ...taskFields(row), title: 'Developer title' },
+        p_assignees: [], p_tags: [], p_base: base, p_edited_at: new Date(Date.now() + 60_000).toISOString() });
+    assert.deepEqual(newer.data.overwritten, [{ field: 'title', theirs: 'Manager title' }]);
+    assert.equal((await as.manager.from('tasks').select('title').eq('id', row.id).single()).data.title, 'Developer title');
+});
+
+test('assignees merge as one field, and permissions still apply to queued edits', async () => {
+    const wr = ids['Website Redesign'];
+    const row = await newTask('People');
+    const base = { ...taskFields(row), assignees: [], tags: [] };
+    await as.manager.rpc('save_task', { p_project: wr, p_task: row.id, p: taskFields(row), p_assignees: [as.designer.uid], p_tags: [],
+        p_base: base, p_edited_at: new Date().toISOString() });
+    // The developer only changed the title; the assignee set they started from (empty) is untouched.
+    await as.developer.rpc('save_task', { p_project: wr, p_task: row.id, p: { ...taskFields(row), title: 'People, renamed' }, p_assignees: [], p_tags: [],
+        p_base: base, p_edited_at: new Date().toISOString() });
+    const { data } = await as.manager.from('tasks').select('title, task_assignees(user_id)').eq('id', row.id).single();
+    assert.equal(data.title, 'People, renamed');
+    assert.deepEqual(data.task_assignees.map((a) => a.user_id), [as.designer.uid], 'the designer stays assigned');
+
+    // A viewer's queued edit is refused, exactly as if made online.
+    assert.equal(code(await as.tester.rpc('save_task', { p_project: wr, p_task: row.id, p: { ...taskFields(row), title: 'Nope' }, p_assignees: [], p_tags: [],
+        p_base: base, p_edited_at: new Date().toISOString() })), '42501');
+});
+
+test('a project edit merges per field too', async () => {
+    const wr = ids['Website Redesign'];
+    const { data: p } = await as.admin.from('projects').select('*').eq('id', wr).single();
+    const fields = (row) => ({ name: row.name, description: row.description, status: row.status, priority: row.priority,
+        start_date: row.start_date, due_date: row.due_date, due_time: row.due_time });
+    const base = fields(p);
+    await as.admin.rpc('update_project', { p_project: wr, p: { ...fields(p), description: 'Edited by admin' }, p_base: base, p_edited_at: new Date().toISOString() });
+    const r = await as.manager.rpc('update_project', { p_project: wr, p: { ...fields(p), priority: 'critical' }, p_base: base, p_edited_at: new Date().toISOString() });
+    assert.deepEqual([r.data.overwritten, r.data.lost], [[], []]);
+    const { data: after } = await as.admin.from('projects').select('description, priority').eq('id', wr).single();
+    assert.deepEqual(after, { description: 'Edited by admin', priority: 'critical' });
+});
+
+test('checklist items: tick to a stated value, and edit with merge', async () => {
+    const row = await newTask('Checklist merge');
+    const added = (await as.manager.rpc('add_checklist_items', { p_task: row.id, p_items: ['Original text'] })).data;
+    const item = added.ids[0];
+    assert.equal(code(await as.tester.rpc('set_item_done', { p_item: item, p_done: true })), '42501');
+    assert.equal((await as.developer.rpc('set_item_done', { p_item: item, p_done: true })).data.completed, 1);
+    assert.equal((await as.developer.rpc('set_item_done', { p_item: item, p_done: true })).data.completed, 1, 'repeating it changes nothing');
+    assert.equal((await as.developer.rpc('set_item_done', { p_item: item, p_done: false })).data.completed, 0);
+
+    await as.manager.rpc('edit_checklist_item', { p_item: item, p_content: 'Manager text', p_base: 'Original text', p_edited_at: new Date().toISOString() });
+    const lost = await as.developer.rpc('edit_checklist_item', { p_item: item, p_content: 'Developer text', p_base: 'Original text', p_edited_at: new Date(Date.now() - 3_600_000).toISOString() });
+    assert.deepEqual(lost.data.lost, [{ field: 'item', yours: 'Developer text' }]);
+    const won = await as.developer.rpc('edit_checklist_item', { p_item: item, p_content: 'Developer text', p_base: 'Original text', p_edited_at: new Date(Date.now() + 60_000).toISOString() });
+    assert.deepEqual(won.data.overwritten, [{ field: 'item', theirs: 'Manager text' }]);
+    assert.equal(code(await as.tester.rpc('edit_checklist_item', { p_item: item, p_content: 'x' })), '42501');
+});
+
+test('time logged offline is stored when it happened, within limits', async () => {
+    const row = await newTask('Timed offline');
+    const hoursAgo = (h) => new Date(Date.now() - h * 3_600_000).toISOString();
+
+    const e = (await as.developer.rpc('log_time', { p_task: row.id, p_minutes: 30, p_ended_at: hoursAgo(5) })).data;
+    const { data: entry } = await as.developer.from('time_entries').select('started_at, ended_at').eq('id', e).single();
+    assert.ok(Math.abs(Date.parse(entry.ended_at) - Date.parse(hoursAgo(5))) < 5000, 'ended when it happened');
+    assert.equal(Math.round((Date.parse(entry.ended_at) - Date.parse(entry.started_at)) / 60000), 30);
+
+    const future = new Date(Date.now() + 86_400_000).toISOString();
+    assert.equal(code(await as.developer.rpc('log_time', { p_task: row.id, p_minutes: 30, p_ended_at: future })), '22023');
+    assert.equal(code(await as.developer.rpc('log_time', { p_task: row.id, p_minutes: 30, p_ended_at: hoursAgo(24 * 40) })), '22023');
+    assert.equal(code(await as.developer.rpc('start_timer', { p_task: row.id, p_started_at: future })), '22023');
+
+    // A timer started in the past, then stopped later but still in the past.
+    assert.ifError((await as.developer.rpc('start_timer', { p_task: row.id, p_started_at: hoursAgo(3) })).error);
+    assert.ifError((await as.developer.rpc('stop_timer', { p_ended_at: hoursAgo(2) })).error);
+    const { data: stopped } = await as.developer.from('time_entries').select('started_at, ended_at').eq('task_id', row.id).order('id', { ascending: false }).limit(1).single();
+    assert.equal(Math.round((Date.parse(stopped.ended_at) - Date.parse(stopped.started_at)) / 60000), 60);
 });

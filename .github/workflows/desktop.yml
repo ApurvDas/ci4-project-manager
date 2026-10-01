@@ -1,0 +1,66 @@
+# Builds the Windows desktop app and publishes it as a GitHub Release, with the files the
+# in-app updater reads. Run it by pushing a tag: `git tag desktop-v0.1.0 && git push origin desktop-v0.1.0`
+# (bump "version" in project-manager/v2/desktop-app/src-tauri/tauri.conf.json and Cargo.toml first, or
+# installed copies won't see it as newer).
+#
+# Needs these repository settings (Settings → Secrets and variables → Actions):
+#   Variables  SUPABASE_URL, SUPABASE_ANON_KEY       the same two the Pages deploy uses
+#   Secrets    TAURI_SIGNING_PRIVATE_KEY             the updater's private key (content of ~/.tauri/pm-updater.key)
+#              TAURI_SIGNING_PRIVATE_KEY_PASSWORD    its password (empty if none was set)
+name: Desktop app
+
+on:
+  push:
+    tags: ['desktop-v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: project-manager/v2/package-lock.json
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: project-manager/v2/desktop-app/src-tauri
+
+      - name: Point the app at the production Supabase project
+        shell: bash
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+        run: |
+          test -n "$SUPABASE_URL" && test -n "$SUPABASE_ANON_KEY" || { echo "::error::Set the SUPABASE_URL and SUPABASE_ANON_KEY repository variables"; exit 1; }
+          printf "export default {\n    url: '%s',\n    anonKey: '%s',\n};\n" "$SUPABASE_URL" "$SUPABASE_ANON_KEY" > project-manager/v2/web/assets/js/config.js
+
+      - run: npm ci
+        working-directory: project-manager/v2
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          projectPath: project-manager/v2/desktop-app
+          tauriScript: npx tauri
+          tagName: ${{ github.ref_name }}
+          releaseName: Project Manager desktop ${{ github.ref_name }}
+          releaseBody: |
+            Windows installer for the Project Manager desktop app. It is not code-signed, so Windows
+            SmartScreen may warn the first time: choose "More info" then "Run anyway". Installed copies
+            update themselves from the next release.
+          releaseDraft: false
+          prerelease: false
+          includeUpdaterJson: true

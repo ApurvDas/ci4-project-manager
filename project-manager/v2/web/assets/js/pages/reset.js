@@ -1,6 +1,6 @@
 // Classic password reset (Phase 15 option B): request a link by email, then
 // the link lands back here signed in, and the new password is entered twice.
-import { authPage, render, html, onSubmit, sb, go, showAlert } from '../app.js';
+import { authPage, render, html, onSubmit, sb, go, showAlert, siteUrl } from '../app.js';
 
 const content = authPage('Reset password');
 
@@ -21,7 +21,7 @@ function requestForm() {
         <p class="auth-meta"><a href="login.html">Back to sign in</a></p>`);
 
     onSubmit(content.querySelector('form'), async ({ email }, form) => {
-        const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: new URL('reset.html', location.href).href });
+        const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: siteUrl('reset.html') });
         if (error && error.status >= 500) throw error;
         form.hidden = true;
         showAlert('If that address has an account, a reset link is on its way.', 'success');

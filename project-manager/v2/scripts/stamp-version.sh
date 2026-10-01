@@ -16,5 +16,9 @@ find "$dir/assets/js" -name '*.js' -not -path '*/lib/*' -print0 |
 # version.txt (fetched uncached) and reloads once if a newer build is live.
 sed -i -E "s#<meta charset=\"utf-8\">#<meta charset=\"utf-8\">\n    <script>window.BUILD = '${version}';</script>#" "$dir"/*.html
 printf '%s' "$version" > "$dir/version.txt"
-# The service worker names its cache after the build, so a deploy replaces it.
+# The service worker names its cache after the build, so a deploy replaces it, and
+# precaches every page and asset so the whole app opens offline.
 sed -i "s#__BUILD__#${version}#" "$dir/sw.js"
+files=$(cd "$dir" && find . -type f \( -name '*.html' -o -name '*.js' -o -name '*.css' -o -name '*.woff2' -o -name '*.png' -o -name '*.ico' -o -name '*.webmanifest' \) ! -name sw.js |
+    sed 's#^\./##' | sort | sed 's#.*#"&"#' | paste -sd, -)
+sed -i "s#^const PRECACHE = \[\];.*#const PRECACHE = [${files}];#" "$dir/sw.js"

@@ -2,8 +2,16 @@
 // shell (header, alerts, footer), flash messages, dates and error text.
 // Everything here is presentation — permissions are enforced by the database.
 import config from './config.js';
+import * as store from './store.js';
+import * as q from './queries.js';
 
 export const sb = window.supabase.createClient(config.url, config.anonKey);
+store.init(sb);
+
+// The desktop app runs from its own address, which an email link can't come back to: links in
+// emails (sign-up, sign-in link, password reset) must point at the website.
+const WEBSITE = 'https://apurvdas.github.io/ci4-project-manager/';
+export const siteUrl = (path) => new URL(path, window.__TAURI__ ? WEBSITE : location.href).href;
 
 // Live site only (the deploy sets window.BUILD): if the browser served this
 // page's HTML from an older build, reload once so it picks up the new one.
@@ -66,6 +74,9 @@ const ICONS = {
     'stop': '<path stroke-linecap="round" stroke-linejoin="round" d="M5.25 7.5A2.25 2.25 0 0 1 7.5 5.25h9a2.25 2.25 0 0 1 2.25 2.25v9a2.25 2.25 0 0 1-2.25 2.25h-9a2.25 2.25 0 0 1-2.25-2.25v-9Z"/>', // stop
     'clock': '<path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>', // clock
     'search': '<path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>', // magnifying-glass
+    'cloud': '<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15a4.5 4.5 0 0 0 4.5 4.5H18a3.75 3.75 0 0 0 1.332-7.257 3 3 0 0 0-3.758-3.848 5.25 5.25 0 0 0-10.233 2.33A4.502 4.502 0 0 0 2.25 15Z"/>', // cloud
+    'cloud-arrow-up': '<path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z"/>', // cloud-arrow-up
+    'warning': '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>', // exclamation-triangle
     'chart': '<path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/>', // chart-bar
 };
 
@@ -149,9 +160,6 @@ export const progress = (percent) => html`
     <span class="text-muted">${percent}%</span>
     <span class="progress" role="img" aria-label="${percent}% of tasks complete"><span class="progress-bar" style="width: ${percent}%"></span></span>`;
 
-// Select string for activity rows with the actor's username.
-export const ACTIVITY = '*, profile:profiles(username)';
-
 // One activity entry with its field diff. A creation has no old value, so only the new one shows.
 export function activityItem(entry) {
     const who = entry.profile?.username ?? (entry.action === 'auto' ? 'Project Manager' : null); // 'auto' = the system acted
@@ -194,7 +202,9 @@ export async function call(request) {
 export const flash = (message, type = 'success') => sessionStorage.setItem('flash', JSON.stringify({ message, type }));
 export function go(url, message) {
     if (message) flash(message);
-    location.href = url;
+    // Pull first, so the next page opens on a local copy that already holds this change.
+    Promise.race([store.sync().catch(() => {}), new Promise((resolve) => setTimeout(resolve, 3000))])
+        .then(() => { location.href = url; });
 }
 
 export function showAlert(message, type = 'error') {
@@ -229,9 +239,17 @@ export function onSubmit(form, handler) {
 // ---------------------------------------------------------------- params
 
 export const param = (name) => new URLSearchParams(location.search).get(name);
+// Rows made offline have temporary negative ids until the server assigns real ones (see ops.js).
 export function idParam(name) {
     const n = Number(param(name));
-    return Number.isInteger(n) && n > 0 ? n : null;
+    return Number.isInteger(n) && n !== 0 ? n : null;
+}
+// Once a temporary id has become a real one, put the real id in the address bar.
+export function canonical(name, id) {
+    const url = new URL(location.href);
+    if (url.searchParams.get(name) === String(id)) return;
+    url.searchParams.set(name, id);
+    history.replaceState(null, '', url);
 }
 
 // ---------------------------------------------------------------- shell
@@ -343,9 +361,12 @@ const footer = () => html`&copy; ${new Date().getFullYear()} Project Manager`;
 // Visitors are sent to sign in, then brought back here.
 export async function page(title, { auth = true } = {}) {
     document.title = `${title} · Project Manager`;
-    const { data: { session } } = await sb.auth.getSession();
+    const { data: { session }, error: sessionError } = await sb.auth.getSession();
+    // Offline, an expired sign-in can't refresh; the local copy can still be read as the last user.
+    const offlineMe = !session && auth && (navigator.onLine === false || sessionError?.name === 'AuthRetryableFetchError')
+        ? await store.cachedMe() : null;
 
-    if (!session && auth) {
+    if (!session && !offlineMe && auth) {
         const here = location.pathname.split('/').pop() + location.search;
         location.replace('login.html?next=' + encodeURIComponent(here));
         return new Promise(() => {}); // never resolves; the page is leaving
@@ -353,10 +374,14 @@ export async function page(title, { auth = true } = {}) {
 
     let actions = html`<a class="top-btn" href="login.html">${roll('Sign in')}</a><a class="top-btn top-btn--primary" href="register.html">${roll('Create account')}</a>`;
     let nav = '';
+    let local = true; // false when there is no local copy yet and no connection to fetch one
 
-    if (session) {
-        me = await call(sb.from('profiles').select('id, username, is_admin').eq('id', session.user.id).single());
-        const { count } = await sb.from('notifications').select('id', { count: 'exact', head: true }).is('read_at', null);
+    if (session || offlineMe) {
+        const userId = session?.user.id ?? offlineMe.id;
+        local = await store.ready(userId);
+        me = local ? (await store.snapshot()).me
+            : { id: userId, username: session.user.user_metadata?.username ?? session.user.email?.split('@')[0] ?? 'you', is_admin: false };
+        const count = local ? await store.unreadCount() : 0;
         const section = location.pathname.split('/').pop();
         const current = (...names) => (names.some((n) => section.startsWith(n)) ? 'page' : 'false');
         nav = html`<nav class="app-nav" aria-label="Main">
@@ -365,6 +390,7 @@ export async function page(title, { auth = true } = {}) {
             <a class="top-btn top-btn--icon" href="search.html" aria-current="${current('search')}" aria-label="Search" title="Search">${icon('search', 'top-btn__icon')}</a>
         </nav>`;
         actions = html`
+            ${syncPill}
             <a class="top-btn notification-link" href="notifications.html" aria-current="${current('notifications')}" aria-label="Notifications${count ? `, ${count} unread` : ''}">
                 ${roll('Notifications')}
                 ${count ? html`<span class="notification-count">${Math.min(count, 99)}</span>` : ''}
@@ -386,13 +412,105 @@ export async function page(title, { auth = true } = {}) {
         ${clock()}`);
 
     document.querySelector('[data-sign-out]')?.addEventListener('click', async () => {
+        const { pending, failed } = await store.status();
+        if (pending + failed > 0 && !confirm(`${pending + failed} change${pending + failed === 1 ? ' has' : 's have'} not been saved to the server yet. Signing out will lose ${pending + failed === 1 ? 'it' : 'them'}. Sign out anyway?`)) return;
         await sb.auth.signOut();
-        go('login.html', 'You have been signed out.');
+        await store.clear();
+        flash('You have been signed out.');
+        location.href = 'login.html';
     });
+    store.onChange(async () => refreshBadge(await store.unreadCount()));
+    if (session || offlineMe) bindSync();
     bindThemeSwitch();
     startClocks();
     showFlash();
-    return document.getElementById('content');
+    if (window.__TAURI__ && (session || offlineMe)) import('./desktop.js').then((d) => d.start()).catch(() => {});
+    const content = document.getElementById('content');
+    return local ? content : needsConnection(content);
+}
+
+// ---------------------------------------------------------------- sync pill
+
+// Where the local copy stands: Synced, Offline, N waiting, or Problem; click for the list of edits.
+const syncPill = html`<span class="sync">
+    <button type="button" class="top-btn sync-pill" data-sync-pill data-state="synced" aria-haspopup="true" aria-expanded="false">
+        ${icon('cloud', 'top-btn__icon')}<span class="sync-pill__label">Synced</span><span class="sync-pill__count" hidden></span>
+    </button>
+    <div class="sync-panel" data-sync-panel hidden role="region" aria-label="Sync status"></div>
+</span>`;
+
+const SYNC_LABEL = { synced: 'Synced', offline: 'Offline', waiting: 'waiting', problem: 'Problem' };
+const SYNC_ICON = { synced: 'cloud', offline: 'cloud', waiting: 'cloud-arrow-up', problem: 'warning' };
+
+function bindSync() {
+    const pill = document.querySelector('[data-sync-pill]');
+    const panel = document.querySelector('[data-sync-panel]');
+    if (!pill) return;
+
+    const draw = async () => {
+        const st = await store.status();
+        const state = st.failed ? 'problem' : st.pending ? 'waiting' : st.online ? 'synced' : 'offline';
+        const n = st.pending + st.failed;
+        pill.dataset.state = state;
+        pill.querySelector('svg').outerHTML = String(icon(SYNC_ICON[state], 'top-btn__icon'));
+        pill.querySelector('.sync-pill__label').textContent = state === 'waiting' ? `${st.pending} waiting` : SYNC_LABEL[state];
+        const count = pill.querySelector('.sync-pill__count');
+        count.hidden = !n;
+        count.textContent = n;
+        pill.setAttribute('aria-label', `Sync status: ${state === 'waiting' ? `${st.pending} changes waiting` : SYNC_LABEL[state]}`);
+        panel.innerHTML = String(html`
+            <h2 class="sync-panel__title">${st.online ? 'Online' : 'Offline'}</h2>
+            ${st.entries.length === 0
+                ? html`<p class="sync-panel__empty">${st.online ? 'All your changes are saved.' : 'You are offline. Changes you make are kept here and sent when you reconnect.'}</p>`
+                : html`<ul class="sync-panel__list">${st.entries.map((e) => html`
+                    <li class="${e.state === 'failed' ? 'is-failed' : ''}">
+                        <div><strong>${e.label}</strong><div class="sync-panel__note">${e.state === 'failed' ? errorMessage(e.error) : st.online ? 'Sending…' : 'Waiting for a connection'}</div></div>
+                        ${e.state === 'failed' ? html`<button type="button" class="btn btn-secondary btn-sm" data-discard="${e.seq}">Discard</button>` : ''}
+                    </li>`)}</ul>`}`);
+    };
+
+    pill.addEventListener('click', () => {
+        const open = panel.hidden;
+        panel.hidden = !open;
+        pill.setAttribute('aria-expanded', String(open));
+        if (open) panel.style.top = `${pill.getBoundingClientRect().bottom + 8}px`;
+    });
+    panel.addEventListener('click', async (event) => {
+        const discard = event.target.closest('[data-discard]');
+        if (discard) await store.discard(Number(discard.dataset.discard));
+    });
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && !panel.hidden) { panel.hidden = true; pill.setAttribute('aria-expanded', 'false'); pill.focus(); } });
+    document.addEventListener('click', (event) => { if (!panel.hidden && !event.target.closest('.sync')) { panel.hidden = true; pill.setAttribute('aria-expanded', 'false'); } });
+
+    // What the per-field merge decided, or why an edit was refused, as a notice at the top of the page.
+    let recent = [];
+    let timer;
+    store.onNotice((message) => {
+        recent.push(message);
+        clearTimeout(timer);
+        timer = setTimeout(() => { showAlert(recent.join(' '), 'info'); recent = []; }, 200);
+    });
+
+    store.onStatus(draw);
+    draw();
+}
+
+// The unread count on the Notifications link follows the local copy as it changes.
+function refreshBadge(count) {
+    const link = document.querySelector('.notification-link');
+    if (!link) return;
+    link.setAttribute('aria-label', `Notifications${count ? `, ${count} unread` : ''}`);
+    let dot = link.querySelector('.notification-count');
+    if (!count) { dot?.remove(); return; }
+    if (!dot) { dot = document.createElement('span'); dot.className = 'notification-count'; link.append(dot); }
+    dot.textContent = Math.min(count, 99);
+}
+
+// For pages the server works out (analytics, search): there is nothing to show offline.
+export function needsConnection(el) {
+    render(el, html`<div class="empty-state card"><h2>Needs a connection</h2>
+        <p>This page is worked out by the server, so it is not available offline.</p></div>`);
+    return new Promise(() => {});
 }
 
 // The centred card used by sign in, register and password reset.
@@ -415,6 +533,7 @@ export function authPage(title) {
     bindThemeSwitch();
     startClocks();
     showFlash();
+    if (window.__TAURI__) import('./desktop.js').then((d) => d.links()).catch(() => {});
     return document.getElementById('content');
 }
 
@@ -432,12 +551,6 @@ const RANK = { owner: 4, manager: 3, member: 2, viewer: 1 };
 // Mirrors ProjectPolicy, only to hide controls; the database re-checks every write.
 export const can = (role, min) => (RANK[role] ?? 0) >= RANK[min];
 
-// The effective role comes from the database, so a site admin (owner-level
-// everywhere) is handled the same way as a real owner.
-export async function projectAndRole(projectId) {
-    const [project, role] = await Promise.all([
-        sb.from('projects').select('*').eq('id', projectId).maybeSingle(),
-        sb.rpc('my_project_role', { p_project: projectId }),
-    ]);
-    return { project: project.data, role: role.data ?? null };
-}
+// The effective role is worked out from the local copy exactly as the database does
+// (a site admin is owner-level everywhere); the database still re-checks every write.
+export const projectAndRole = (projectId) => store.read(q.projectAndRole, projectId);

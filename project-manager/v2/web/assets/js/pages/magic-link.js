@@ -1,4 +1,4 @@
-import { authPage, render, html, onSubmit, sb, showAlert } from '../app.js';
+import { authPage, render, html, onSubmit, sb, showAlert, siteUrl } from '../app.js';
 
 const content = authPage('Login link');
 
@@ -20,7 +20,7 @@ render(content, html`
 onSubmit(content.querySelector('form'), async ({ email }, form) => {
     const { error } = await sb.auth.signInWithOtp({
         email,
-        options: { shouldCreateUser: false, emailRedirectTo: new URL('dashboard.html', location.href).href },
+        options: { shouldCreateUser: false, emailRedirectTo: siteUrl('dashboard.html') },
     });
     // Same answer whether or not the address has an account, so it can't be probed.
     if (error && error.status !== 400 && error.status !== 422) throw error;

@@ -18,10 +18,38 @@ export function resetData() {
 
 // Run SQL against the local database, for setting up a state the UI can't reach.
 export function runSql(sql) {
-    execFileSync('docker', ['exec', '-i', 'supabase_db_project-manager', 'psql', '-U', 'postgres', '-q', '-v', 'ON_ERROR_STOP=1'], {
-        input: sql,
-        stdio: ['pipe', 'ignore', 'pipe'],
-    });
+    // A page left over from the previous test may still be syncing, and a truncate can lose a lock
+    // race with it; try again rather than fail the test.
+    for (let attempt = 1; ; attempt++) {
+        try {
+            execFileSync('docker', ['exec', '-i', 'supabase_db_project-manager', 'psql', '-U', 'postgres', '-q', '-v', 'ON_ERROR_STOP=1'], {
+                input: sql,
+                stdio: ['pipe', 'ignore', 'pipe'],
+            });
+            return;
+        } catch (error) {
+            if (attempt === 3) throw error;
+            Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 500);
+        }
+    }
+}
+
+// Wait until live updates are really flowing to this page. The local live-update server occasionally
+// drops an event just after a database reset, so prove the path with a harmless change first (touching
+// a row announces it without altering anything you can see), and only then time the real one.
+export async function liveReady(page) {
+    let pulls = 0;
+    page.on('request', (request) => { if (request.url().includes('sync_pull')) pulls++; });
+    await page.waitForTimeout(600); // let the page's own start-up pulls finish
+    for (let attempt = 0; attempt < 6; attempt++) {
+        const before = pulls;
+        runSql('update public.tasks set priority = priority where id = 1');
+        try {
+            await expect.poll(() => pulls, { timeout: 4000 }).toBeGreaterThan(before);
+            return;
+        } catch { /* not delivered: try again */ }
+    }
+    throw new Error('live updates never arrived at the page');
 }
 
 export async function signIn(page, username) {

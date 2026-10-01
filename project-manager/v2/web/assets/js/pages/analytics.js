@@ -1,12 +1,13 @@
 // Project analytics: headline numbers, tasks completed per week, a 30-day
 // burndown and hours logged per member. All figures come from the
 // project_analytics() RPC; the charts are plain SVG in the site's own ink.
-import { page, render, html, call, sb, idParam, notFound, projectAndRole, today, fmtMinutes, fmtShort } from '../app.js';
+import { page, render, html, call, sb, idParam, notFound, projectAndRole, needsConnection, today, fmtMinutes, fmtShort } from '../app.js';
 
 const id = idParam('project');
 const content = await page('Analytics');
 const { project } = id ? await projectAndRole(id) : {};
 if (!project) await notFound(content);
+if (!navigator.onLine) await needsConnection(content); // worked out by the server
 document.title = `Analytics · ${project.name} · Project Manager`;
 
 const a = await call(sb.rpc('project_analytics', { p_project: id, p_today: today() }));

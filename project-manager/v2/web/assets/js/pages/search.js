@@ -1,8 +1,9 @@
 // Search across projects, tasks, comments and checklist items you can see.
 // The query lives in the URL (?q=) so results can be bookmarked and shared.
-import { page, render, html, raw, call, sb, param, icon } from '../app.js';
+import { page, render, html, raw, call, sb, param, icon, needsConnection } from '../app.js';
 
 const content = await page('Search');
+if (!navigator.onLine) await needsConnection(content); // worked out by the server
 const query = (param('q') ?? '').trim();
 const results = query ? await call(sb.rpc('search', { p_query: query })) : [];
 

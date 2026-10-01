@@ -8,11 +8,14 @@
     "serve": "http-server web -p 8123 -c-1 -s",
     "test": "node --test tests/*.test.mjs",
     "e2e": "playwright test",
-    "audit:mobile": "node tests/mobile-audit.mjs"
+    "audit:mobile": "node tests/mobile-audit.mjs",
+    "desktop:dev": "cd desktop-app && tauri dev",
+    "desktop:build": "cd desktop-app && tauri build"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",
     "@supabase/supabase-js": "^2.117.2",
+    "@tauri-apps/cli": "^2.12.1",
     "http-server": "^14.1.1",
     "supabase": "2.118.0"
   }

@@ -1,4 +1,4 @@
-import { authPage, render, html, onSubmit, sb, go, showAlert } from '../app.js';
+import { authPage, render, html, onSubmit, sb, go, showAlert, siteUrl } from '../app.js';
 
 const content = authPage('Register');
 
@@ -47,7 +47,7 @@ onSubmit(content.querySelector('form'), async ({ email, username, password }, fo
     const { data, error } = await sb.auth.signUp({
         email,
         password,
-        options: { data: { username }, emailRedirectTo: new URL('dashboard.html', location.href).href },
+        options: { data: { username }, emailRedirectTo: siteUrl('dashboard.html') },
     });
     if (error) throw error;
 

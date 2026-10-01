@@ -2544,6 +2544,111 @@ body {
   }
 }
 
+/* Sync pill ------------------------------------------------------------------------ */
+/* Where the local copy stands (Synced / Offline / N waiting / Problem). Tinted by state,
+   with the words and the icon saying the same thing, so colour is never the only signal. */
+.app-header .sync-pill[data-state="waiting"] {
+  --tint: var(--warning);
+  color: var(--tint);
+}
+
+.app-header .sync-pill[data-state="problem"] {
+  --tint: var(--danger);
+  color: var(--tint);
+}
+
+.app-header .sync-pill[data-state="offline"] {
+  --tint: var(--text-subtle);
+  color: var(--tint);
+}
+
+.sync-pill__count {
+  display: none; /* the wide pill says "N waiting" in words; the badge is for the icon-only pill */
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  /* A disc in the pill's own tint, with the number cut out of it in the surface colour. */
+  background: var(--tint, currentColor);
+  color: var(--surface);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.sync-panel {
+  position: fixed;
+  right: var(--space-4);
+  z-index: 60;
+  width: min(380px, calc(100vw - 2 * var(--space-4)));
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  color: var(--text);
+}
+
+.sync-panel[hidden] {
+  display: none;
+}
+
+.sync-panel__title {
+  margin: 0 0 var(--space-3);
+  font-size: 0.95rem;
+}
+
+.sync-panel__empty,
+.sync-panel__note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.sync-panel__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sync-panel__list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+
+.sync-panel__list .is-failed .sync-panel__note {
+  color: var(--danger);
+}
+
+/* The word beside the icon only fits a wide header; otherwise the pill is icon-only (with its
+   count), so the one-row header at 1024px and the two-row one below it both still fit. */
+@media (max-width: 1279px) {
+  .app-header .sync-pill {
+    padding: 0 var(--space-3);
+  }
+
+  .sync-pill__label {
+    display: none;
+  }
+
+  .sync-pill__count:not([hidden]) {
+    display: inline-grid;
+  }
+}
+
+@media (max-width: 620px) {
+  .app-header .sync-pill {
+    padding: 0 var(--space-2);
+  }
+}
+
 /* Time tracking ------------------------------------------------------------------- */
 .time-meter .progress {
   width: 100%;

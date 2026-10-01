@@ -1,0 +1,52 @@
+{
+    "$schema": "https://schema.tauri.app/config/2",
+    "productName": "Project Manager",
+    "version": "0.1.0",
+    "identifier": "io.github.apurvdas.pm",
+    "build": {
+        "frontendDist": "../../web",
+        "devUrl": "http://localhost:8123",
+        "beforeDevCommand": "npm --prefix .. run serve"
+    },
+    "app": {
+        "withGlobalTauri": true,
+        "windows": [
+            {
+                "label": "main",
+                "title": "Project Manager",
+                "width": 1200,
+                "height": 800,
+                "minWidth": 360,
+                "minHeight": 600
+            }
+        ],
+        "security": {
+            "csp": null
+        }
+    },
+    "bundle": {
+        "active": true,
+        "targets": ["nsis"],
+        "createUpdaterArtifacts": true,
+        "icon": [
+            "icons/32x32.png",
+            "icons/128x128.png",
+            "icons/128x128@2x.png",
+            "icons/icon.icns",
+            "icons/icon.ico"
+        ],
+        "windows": {
+            "nsis": {
+                "installMode": "currentUser"
+            }
+        }
+    },
+    "plugins": {
+        "updater": {
+            "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDkyMzU0NkRGQzg2MTk3QTgKUldTb2wySEkzMFkxa2lmbzU4WUFYMVc1QnNKQmgrakZMd09ybXlvanJaNTliZHVQamlDNXRJNy8K",
+            "endpoints": [
+                "https://github.com/ApurvDas/ci4-project-manager/releases/latest/download/latest.json"
+            ]
+        }
+    }
+}

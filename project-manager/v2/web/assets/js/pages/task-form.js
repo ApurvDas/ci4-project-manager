@@ -1,5 +1,7 @@
 // New task (?project=N) or edit one (?project=N&id=M). Member+ only.
-import { page, render, html, call, sb, humanise, idParam, onSubmit, go, notFound, projectAndRole, can, dueTimeField, slide } from '../app.js';
+import { page, render, html, humanise, idParam, canonical, onSubmit, go, notFound, can, dueTimeField, slide } from '../app.js';
+import { read, mutate } from '../store.js';
+import * as q from '../queries.js';
 
 const STATUSES = ['todo', 'in_progress', 'review', 'completed'];
 const PRIORITIES = ['low', 'medium', 'high', 'critical'];
@@ -7,19 +9,12 @@ const PRIORITIES = ['low', 'medium', 'high', 'critical'];
 const projectId = idParam('project');
 const id = idParam('id');
 const content = await page(id ? 'Edit task' : 'New task');
-const { project, role } = projectId ? await projectAndRole(projectId) : {};
-if (!project || !can(role, 'member')) await notFound(content);
-
-let task = { status: 'todo', priority: 'medium', task_assignees: [], task_tags: [] };
-if (id) {
-    task = (await sb.from('tasks').select('*, task_assignees(user_id), task_tags(tag_id)').eq('id', id).eq('project_id', projectId).maybeSingle()).data;
-    if (!task) await notFound(content);
-}
-
-const [members, tags] = await Promise.all([
-    call(sb.from('project_members').select('user_id, role, profile:profiles(username)').eq('project_id', projectId)),
-    call(sb.from('tags').select('*').eq('project_id', projectId).order('name')),
-]);
+const data = projectId ? await read(q.taskFormPage, projectId, id) : null;
+if (!data || !can(data.role, 'member')) await notFound(content);
+const { project, members, tags } = data;
+const task = data.task ?? { status: 'todo', priority: 'medium', task_assignees: [], task_tags: [] };
+canonical('project', project.id);
+if (id) canonical('id', task.id);
 const assigned = new Set(task.task_assignees.map((a) => a.user_id));
 const tagged = new Set(task.task_tags.map((t) => t.tag_id));
 
@@ -83,16 +78,19 @@ render(content, html`
 
 onSubmit(content.querySelector('form'), async (fields, form) => {
     const data = new FormData(form);
-    const taskId = await call(sb.rpc('save_task', {
-        p_project: projectId,
-        p_task: id,
-        p: fields,
-        p_assignees: data.getAll('assignees'),
-        p_tags: data.getAll('tags').map(Number),
-    }));
+    // The values the form started from, so the server can tell which fields this edit really changed.
+    const base = id ? {
+        title: task.title, description: task.description, status: task.status, priority: task.priority,
+        start_date: task.start_date, due_date: task.due_date, due_time: task.due_time,
+        assignees: task.task_assignees.map((a) => a.user_id), tags: task.task_tags.map((t) => t.tag_id),
+    } : null;
+    const taskId = (await mutate('saveTask', {
+        project: projectId, task: id, fields, base,
+        assignees: data.getAll('assignees'), tags: data.getAll('tags').map(Number),
+    })) ?? id;
     const estimate = Math.round(Number(fields.estimate || 0) * 60);
     if (estimate !== (task.estimate_minutes ?? 0)) {
-        await call(sb.rpc('set_task_estimate', { p_task: taskId, p_minutes: estimate }));
+        await mutate('setEstimate', { task: taskId, minutes: estimate });
     }
     go(`task.html?project=${projectId}&id=${taskId}`, id ? 'Task updated.' : 'Task created.');
 });

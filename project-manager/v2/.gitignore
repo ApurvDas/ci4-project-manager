@@ -4,3 +4,5 @@ playwright-report/
 supabase/.temp/
 supabase/.branches/
 .playwright-mcp/
+desktop-app/src-tauri/target/
+desktop-app/src-tauri/gen/

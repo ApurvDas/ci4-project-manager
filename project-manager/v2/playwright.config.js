@@ -16,9 +16,18 @@ export default defineConfig({
         screenshot: 'only-on-failure',
     },
     projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
-    webServer: {
-        command: `npx http-server web -p ${PORT} -c-1 -s`,
-        url: `http://localhost:${PORT}/login.html`,
-        reuseExistingServer: !process.env.CI,
-    },
+    webServer: [
+        {
+            command: `npx http-server web -p ${PORT} -c-1 -s`,
+            url: `http://localhost:${PORT}/login.html`,
+            reuseExistingServer: !process.env.CI,
+        },
+        {
+            // A stamped copy, as deployed: the only place the service worker registers (needs bash).
+            command: 'node tests/stamped-server.mjs',
+            url: 'http://localhost:8124/login.html',
+            reuseExistingServer: !process.env.CI,
+            timeout: 60_000,
+        },
+    ],
 });
