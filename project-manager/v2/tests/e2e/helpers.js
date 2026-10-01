@@ -24,7 +24,7 @@ export async function signIn(page, username) {
     await page.goto('/login.html');
     await page.evaluate(() => localStorage.clear());
     await page.goto('/login.html');
-    await page.fill('input[name="email"]', `${username}@example.test`);
+    await page.fill('input[name="email"]', `${username.toLowerCase()}@example.test`);
     await page.fill('input[name="password"]', PASSWORD);
     await page.click('button[type="submit"]');
     await expect(page.locator('.user-chip')).toContainText(username);

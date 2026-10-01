@@ -48,6 +48,11 @@ render(content, html`
                 <div class="field"><label for="start_date">Start date</label><input type="date" id="start_date" name="start_date" value="${task.start_date ?? ''}"></div>
                 <div class="field"><label for="due_date">Due date</label><input type="date" id="due_date" name="due_date" value="${task.due_date ?? ''}"></div>
                 ${dueTimeField(task.due_time)}
+                <div class="field">
+                    <label for="estimate">Estimate (hours)</label>
+                    <input type="number" id="estimate" name="estimate" min="0" max="1666" step="0.25" value="${task.estimate_minutes ? task.estimate_minutes / 60 : ''}" placeholder="e.g. 4">
+                    <p class="hint">Optional. Compared with the time logged on the task.</p>
+                </div>
                 <div class="field form-full">
                     <label>Assignees</label>
                     <div class="check-grid">${members.map((m) => html`
@@ -85,5 +90,9 @@ onSubmit(content.querySelector('form'), async (fields, form) => {
         p_assignees: data.getAll('assignees'),
         p_tags: data.getAll('tags').map(Number),
     }));
+    const estimate = Math.round(Number(fields.estimate || 0) * 60);
+    if (estimate !== (task.estimate_minutes ?? 0)) {
+        await call(sb.rpc('set_task_estimate', { p_task: taskId, p_minutes: estimate }));
+    }
     go(`task.html?project=${projectId}&id=${taskId}`, id ? 'Task updated.' : 'Task created.');
 });

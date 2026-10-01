@@ -101,6 +101,13 @@ test('only the owner archives, including through the edit form', async () => {
     assert.ifError((await as.manager.rpc('update_project', { p_project: wr, p: { ...p, priority: 'critical' } })).error);
     assert.ifError((await as.admin.rpc('set_project_status', { p_project: wr, p_status: 'archived' })).error);
     assert.ifError((await as.admin.rpc('set_project_status', { p_project: wr, p_status: 'active' })).error);
+
+    // Mark complete: owner only, and a bad status is still rejected.
+    assert.equal(code(await as.manager.rpc('set_project_status', { p_project: wr, p_status: 'completed' })), '42501');
+    assert.equal(code(await as.admin.rpc('set_project_status', { p_project: wr, p_status: 'bogus' })), '22023');
+    assert.ifError((await as.admin.rpc('set_project_status', { p_project: wr, p_status: 'completed' })).error);
+    assert.equal((await as.admin.from('projects').select('status').eq('id', wr).single()).data.status, 'completed');
+    assert.ifError((await as.admin.rpc('set_project_status', { p_project: wr, p_status: 'active' })).error);
 });
 
 test('save_task: assignees must be members, tags from this project; diff is logged', async () => {
@@ -283,4 +290,52 @@ test('project progress moves with checklist ticks, and completed tasks count ful
     const dash = (await as.manager.rpc('dashboard')).data;
     assert.equal(dash.myProjects.find((p) => p.id === mc).progress, 50, 'dashboard agrees');
     assert.equal((await as.designer.rpc('project_progress', { p_project: ids['Mobile Application'] })).data, 0, 'non-member sees nothing');
+});
+
+test('time tracking: member+ starts/stops/logs; one running timer each; viewers cannot', async () => {
+    const task = ids['Build authentication'];
+    assert.equal(code(await as.tester.rpc('start_timer', { p_task: task.id })), '42501'); // viewer
+    assert.equal(code(await as.designer.rpc('log_time', { p_task: ids['Migrate runbooks'].id, p_minutes: 30 })), 'P0002'); // non-member
+
+    const first = (await as.developer.rpc('start_timer', { p_task: task.id })).data;
+    const second = (await as.developer.rpc('start_timer', { p_task: ids['Deploy application'].id })).data; // stops the first
+    const { data: running } = await as.developer.from('time_entries').select('id').eq('user_id', as.developer.uid).is('ended_at', null);
+    assert.deepEqual(running.map((r) => r.id), [second]);
+    await as.developer.rpc('stop_timer');
+    const { data: none } = await as.developer.from('time_entries').select('id').eq('user_id', as.developer.uid).is('ended_at', null);
+    assert.equal(none.length, 0);
+    assert.ok(first);
+
+    assert.equal(code(await as.developer.rpc('log_time', { p_task: task.id, p_minutes: 0 })), '22023');
+    assert.ifError((await as.developer.rpc('log_time', { p_task: task.id, p_minutes: 90, p_note: 'Pairing' })).error);
+    assert.ifError((await as.manager.rpc('set_task_estimate', { p_task: task.id, p_minutes: 240 })).error);
+
+    // Another member can see but not delete someone else's entry.
+    const { data: mine } = await as.developer.from('time_entries').select('id').eq('note', 'Pairing').single();
+    assert.equal((await as.designer.from('time_entries').delete().eq('id', mine.id).select()).data.length, 0);
+    assert.equal((await as.developer.from('time_entries').delete().eq('id', mine.id).select()).data.length, 1);
+});
+
+test('project analytics: members only, with weekly, burndown and totals', async () => {
+    assert.equal(code(await as.designer.rpc('project_analytics', { p_project: ids['Internal Wiki'] })), 'P0002');
+    const { data, error } = await as.admin.rpc('project_analytics', { p_project: ids['Internal Wiki'] });
+    assert.ifError(error);
+    assert.equal(data.weekly.length, 8);
+    assert.equal(data.burndown.length, 30);
+    assert.equal(data.totals.tasks, 2);
+    assert.equal(data.totals.completed, 2);
+    assert.ok(data.avgDaysToFinish !== null);
+});
+
+test('search: prefix matches across tasks, comments and checklists, only in visible projects', async () => {
+    const found = (await as.developer.rpc('search', { p_query: 'auth' })).data;
+    assert.ok(found.some((r) => r.kind === 'task' && r.title === 'Build authentication'));
+    assert.ok(found.every((r) => typeof r.snippet === 'string'));
+    const kinds = new Set((await as.developer.rpc('search', { p_query: 'shield' })).data.map((r) => r.kind));
+    assert.ok(kinds.has('comment') || kinds.has('task'));
+    assert.ok((await as.developer.rpc('search', { p_query: 'backups' })).data.some((r) => r.kind === 'checklist'));
+    // designer is not in Internal Wiki, so its runbooks task never shows up.
+    assert.equal((await as.designer.rpc('search', { p_query: 'runbooks' })).data.length, 0);
+    assert.ok((await as.developer.rpc('search', { p_query: 'runbooks' })).data.length > 0);
+    assert.deepEqual((await as.developer.rpc('search', { p_query: '  !! ' })).data, []);
 });

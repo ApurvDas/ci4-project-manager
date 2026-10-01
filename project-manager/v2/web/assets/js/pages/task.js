@@ -1,5 +1,5 @@
 import {
-    page, render, html, call, sb, me, fmtDate, fmtDue, fmtDateTime, isOverdue, badge, idParam, notFound, projectAndRole, can, onSubmit, go, showAlert, errorMessage, ACTIVITY, activityItem, overdueBanner, slide, icon,
+    page, render, html, call, sb, me, fmtDate, fmtDue, fmtDateTime, isOverdue, badge, idParam, notFound, projectAndRole, can, onSubmit, go, showAlert, errorMessage, ACTIVITY, activityItem, overdueBanner, slide, icon, fmtMinutes, progress,
 } from '../app.js';
 
 const projectId = idParam('project');
@@ -12,11 +12,56 @@ const task = project && id
 if (!task) await notFound(content);
 document.title = `${task.title} · Project Manager`;
 
-const [checklists, comments, activity] = await Promise.all([
+const [checklists, comments, activity, timeEntries] = await Promise.all([
     call(sb.from('task_checklists').select('id, title, task_checklist_items(id, content, is_completed, position)').eq('task_id', id).order('id')),
     call(sb.from('task_comments').select('*, profile:profiles(username)').eq('task_id', id).order('created_at').order('id')),
     call(sb.from('activity_logs').select(ACTIVITY).eq('entity_type', 'task').eq('entity_id', id).order('created_at', { ascending: false }).order('id', { ascending: false }).limit(10)),
+    call(sb.from('time_entries').select('*, profile:profiles(username)').eq('task_id', id).order('started_at', { ascending: false })),
 ]);
+
+// Time tracking: minutes per entry (a running one counts up to now), totals vs the estimate.
+const entryMinutes = (e) => ((e.ended_at ? new Date(e.ended_at) : new Date()) - new Date(e.started_at)) / 60000;
+const loggedMinutes = timeEntries.reduce((sum, e) => sum + entryMinutes(e), 0);
+const myTimer = timeEntries.find((e) => !e.ended_at && e.user_id === me.id);
+const estimate = task.estimate_minutes;
+const timeCard = () => html`<section class="card" data-time-card>
+    <div class="panel-head"><h2>Time</h2><span class="badge">${fmtMinutes(loggedMinutes)}${estimate ? ` / ${fmtMinutes(estimate)}` : ''}</span></div>
+    <div class="card-body">
+        ${estimate ? html`
+            <div class="time-meter ${loggedMinutes > estimate ? 'is-over' : ''}">
+                ${progress(Math.min(100, Math.round((loggedMinutes / estimate) * 100)))}
+                <p class="hint">${loggedMinutes > estimate
+                    ? `${fmtMinutes(loggedMinutes - estimate)} over the ${fmtMinutes(estimate)} estimate`
+                    : `${fmtMinutes(estimate - loggedMinutes)} left of the ${fmtMinutes(estimate)} estimate`}</p>
+            </div>` : html`<p class="hint mt-0">No estimate yet${canWrite ? ' — add one when editing the task.' : '.'}</p>`}
+        ${canWrite ? html`
+            <div class="time-actions">
+                ${myTimer
+                    ? html`<button type="button" class="btn btn-danger btn-slide" data-timer="stop">${slide('Stop timer', 'stop')}</button>
+                           <span class="time-running" data-running-since="${myTimer.started_at}" aria-live="off">0:00:00</span>`
+                    : html`<button type="button" class="btn btn-primary btn-slide" data-timer="start">${slide('Start timer', 'play')}</button>`}
+            </div>
+            <form class="time-log" data-action="log-time">
+                <div class="field">
+                    <label for="log-hours">Log time</label>
+                    <input type="number" id="log-hours" name="hours" min="0.25" max="24" step="0.25" placeholder="1.5" required>
+                </div>
+                <div class="field">
+                    <label for="log-note">Note</label>
+                    <input type="text" id="log-note" name="note" maxlength="255" placeholder="Optional">
+                </div>
+                <button type="submit" class="btn btn-secondary btn-slide">${slide('Log', 'clock')}</button>
+            </form>` : ''}
+    </div>
+    ${timeEntries.length ? html`<ul class="list time-entries">${timeEntries.slice(0, 10).map((e) => html`
+        <li class="list-item">
+            <div>
+                <div class="list-item-title">${e.profile.username} · ${e.ended_at ? fmtMinutes(entryMinutes(e)) : 'running'}</div>
+                <div class="list-item-meta"><span>${fmtDateTime(e.started_at)}</span>${e.note ? html`<span>${e.note}</span>` : ''}</div>
+            </div>
+            ${e.user_id === me.id && e.ended_at ? html`<span class="checklist-tools"><button type="button" class="box-button box-button--danger" data-delete-time="${e.id}" aria-label="Delete time entry" title="Delete"><span class="box-button__face">${icon('trash')}</span></button></span>` : ''}
+        </li>`)}</ul>` : ''}
+</section>`;
 
 const canWrite = can(role, 'member');
 const canManage = can(role, 'manager');
@@ -115,6 +160,8 @@ render(content, html`
                 </dl>
             </div></section>
 
+            ${timeCard()}
+
             <section class="card">
                 <div class="panel-head"><h2>Assignees</h2><span class="badge">${task.task_assignees.length}</span></div>
                 ${task.task_assignees.length === 0 ? empty('Unassigned', 'Nobody is working on this yet.') : html`
@@ -158,7 +205,7 @@ const actions = {
     },
 };
 
-content.querySelectorAll('form[data-action]').forEach((form) => {
+content.querySelectorAll('form[data-action]:not([data-action="log-time"])').forEach((form) => {
     form.addEventListener('submit', (e) => {
         if (form.dataset.confirm && !confirm(form.dataset.confirm)) e.preventDefault();
     });
@@ -227,6 +274,51 @@ content.addEventListener('click', async (event) => {
         }
     });
 });
+
+// Time tracking: start/stop, a live elapsed display, manual logs, deleting your own entries.
+const running = content.querySelector('[data-running-since]');
+if (running) {
+    const since = new Date(running.dataset.runningSince);
+    const show = () => {
+        const s = Math.max(0, Math.floor((Date.now() - since) / 1000));
+        running.textContent = `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+    };
+    show();
+    setInterval(show, 1000);
+}
+
+content.querySelector('[data-time-card]').addEventListener('click', async (event) => {
+    const timer = event.target.closest('[data-timer]');
+    const del = event.target.closest('[data-delete-time]');
+    try {
+        if (timer) {
+            timer.disabled = true;
+            if (timer.dataset.timer === 'start') {
+                await call(sb.rpc('start_timer', { p_task: id }));
+                go(here, 'Timer started. It keeps running if you leave this page.');
+            } else {
+                await call(sb.rpc('stop_timer'));
+                go(here, 'Timer stopped.');
+            }
+        } else if (del && confirm('Delete this time entry?')) {
+            const gone = await call(sb.from('time_entries').delete().eq('id', del.dataset.deleteTime).select('id'));
+            if (gone.length === 0) throw new Error('You can only delete your own entries.');
+            go(here, 'Time entry deleted.');
+        }
+    } catch (error) {
+        showAlert(errorMessage(error));
+        if (timer) timer.disabled = false;
+    }
+});
+
+const logForm = content.querySelector('form[data-action="log-time"]');
+if (logForm) {
+    onSubmit(logForm, async (f) => {
+        const minutes = Math.round(Number(f.hours) * 60);
+        await call(sb.rpc('log_time', { p_task: id, p_minutes: minutes, p_note: f.note }));
+        go(here, `Logged ${fmtMinutes(minutes)}.`);
+    });
+}
 
 // Ticking an item updates in place; toggle_item() re-checks the role and returns fresh progress.
 content.addEventListener('click', async (event) => {

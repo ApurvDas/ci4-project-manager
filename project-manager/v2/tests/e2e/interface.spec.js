@@ -93,6 +93,20 @@ test.describe('Projects and tasks', () => {
         await expect(page.locator('.activity-body').first()).toContainText('created the task Pick a typeface');
     });
 
+    test('an owner can mark a project complete and reopen it', async ({ page }) => {
+        await signIn(page, 'admin');
+        await page.goto('/project.html?id=1');
+        await page.getByRole('button', { name: 'Mark complete' }).click();
+        await expect(page.locator('.alert-success')).toContainText('Project marked complete');
+        await expect(page.locator('.list-item-meta .badge').first()).toHaveText('Completed');
+        await expect(page.getByRole('button', { name: 'Mark complete' })).toHaveCount(0);
+        await expect(page.locator('.activity-body').first()).toContainText('marked the project complete');
+
+        await page.getByRole('button', { name: 'Reopen' }).click();
+        await expect(page.locator('.alert-success')).toContainText('Project reopened');
+        await expect(page.getByRole('button', { name: 'Mark complete' })).toBeVisible();
+    });
+
     test('a comment notifies the task creator, and the actor sees their own comment', async ({ page }) => {
         await signIn(page, 'developer');
         await page.goto('/task.html?project=1&id=2'); // created by admin
@@ -219,6 +233,11 @@ test.describe('Analogue clock', () => {
     // Angle of a hand, from its rotate(angle 100 100) transform.
     const angleOf = (page, hand) => page.locator(`.clock [data-hand="${hand}"]`).first()
         .evaluate((el) => parseFloat(el.getAttribute('transform').slice('rotate('.length)));
+    // The second hand is a CSS animation, so read its computed matrix.
+    const secondAngle = (page) => page.locator('.clock [data-sweep]').first().evaluate((el) => {
+        const [a, b] = getComputedStyle(el).transform.match(/-?[\d.e-]+/g).map(Number);
+        return (Math.atan2(b, a) * 180 / Math.PI + 360) % 360;
+    });
 
     test('shows the real time on every page and the second hand keeps sweeping', async ({ page }) => {
         await page.goto('/login.html');
@@ -247,11 +266,13 @@ test.describe('Analogue clock', () => {
         const filled = await page.locator('.clock [data-day]').evaluate((el) => parseFloat(el.getAttribute('stroke-dasharray')));
         expect(Math.abs(filled - now.dayGone)).toBeLessThan(0.5);
 
-        // The second hand sweeps continuously: it moves between two readings a moment apart.
-        const first = await angleOf(page, 's');
+        // The second hand shows the real second, then keeps sweeping.
+        const { sec } = await page.evaluate(() => { const d = new Date(); return { sec: d.getSeconds() + d.getMilliseconds() / 1000 }; });
+        const first = await secondAngle(page);
+        const gap = Math.abs(first - sec * 6);
+        expect(Math.min(gap, 360 - gap)).toBeLessThan(6); // within a second
         await page.waitForTimeout(300);
-        const second = await angleOf(page, 's');
-        expect(second).not.toBe(first);
+        expect(await secondAngle(page)).not.toBe(first);
     });
 });
 

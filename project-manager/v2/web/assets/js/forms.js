@@ -189,6 +189,8 @@
                 var label = submit.querySelector('.btn-slide__text') || submit;
                 submit.dataset.idleLabel = label.textContent;
                 label.textContent = submit.dataset.busyLabel || 'Please wait…';
+                // Small wandering eyes before the busy label; reset() clears them with the text.
+                label.insertAdjacentHTML('afterbegin', '<span class="eyes eyes--inline" aria-hidden="true"><span class="eyes__eye"></span><span class="eyes__eye"></span></span>');
             }
         });
     }

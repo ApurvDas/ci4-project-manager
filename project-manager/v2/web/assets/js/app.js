@@ -20,6 +20,8 @@ if (window.BUILD) {
             location.reload();
         })
         .catch(() => { /* offline or blocked: keep the page as it is */ });
+    // Offline shell; local dev (no BUILD) never registers it, so it never serves stale files.
+    navigator.serviceWorker?.register('sw.js').catch(() => { /* unsupported or blocked: fine */ });
 }
 
 // ---------------------------------------------------------------- templates
@@ -38,6 +40,12 @@ const show = (v) => (v instanceof Raw ? v.s
 export const html = (strings, ...values) =>
     raw(strings.reduce((out, s, i) => out + s + (i < values.length ? show(values[i]) : ''), ''));
 
+// Wandering eyes loader (a port of the WanderingEyes React component the user
+// chose), drawn in currentColor so it follows the theme. See .eyes in app.css.
+export const loader = ({ label = 'Loading…', cls = '' } = {}) => html`<span class="eyes ${cls}" role="status">
+    <span class="eyes__eye" aria-hidden="true"></span><span class="eyes__eye" aria-hidden="true"></span>
+    <span class="visually-hidden">${label}</span></span>`;
+
 // Heroicons v2.2.0, outline set (https://heroicons.com/outline), MIT licensed.
 // Drawn with currentColor at stroke-width 1.5, as Heroicons intends.
 const ICONS = {
@@ -54,6 +62,11 @@ const ICONS = {
     'check-all': '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>', // check-circle
     'filter': '<path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z"/>', // funnel
     'plus-circle': '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>', // plus-circle
+    'play': '<path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"/>', // play
+    'stop': '<path stroke-linecap="round" stroke-linejoin="round" d="M5.25 7.5A2.25 2.25 0 0 1 7.5 5.25h9a2.25 2.25 0 0 1 2.25 2.25v9a2.25 2.25 0 0 1-2.25 2.25h-9a2.25 2.25 0 0 1-2.25-2.25v-9Z"/>', // stop
+    'clock': '<path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>', // clock
+    'search': '<path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>', // magnifying-glass
+    'chart': '<path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/>', // chart-bar
 };
 
 // Inside of a sliding action button (Uiverse, andrew-demchenk0): the label,
@@ -83,6 +96,8 @@ export const today = () => { const d = new Date(); return `${d.getFullYear()}-${
 export const nowTime = () => { const d = new Date(); return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; };
 const hhmm = (t) => t.slice(0, 5); // '17:30:00' -> '17:30'
 export const fmtShort = (v) => { const d = toDate(v); return `${d.getDate()} ${MONTHS[d.getMonth()]}`; };
+// 95 -> '1h 35m', 45 -> '45m', 0 -> '0m'.
+export const fmtMinutes = (m) => { m = Math.max(0, Math.round(m)); return m >= 60 ? `${Math.floor(m / 60)}h${m % 60 ? ` ${m % 60}m` : ''}` : `${m}m`; };
 export const fmtDate = (v) => (v ? `${fmtShort(v)} ${toDate(v).getFullYear()}` : '');
 export const fmtDateTime = (v) => { const d = toDate(v); return `${fmtDate(v)}, ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
 
@@ -256,8 +271,9 @@ function bindThemeSwitch() {
 // (bolder at 12/3/6/9), rounded hour and minute hands, a red second hand with
 // a tail and a capped centre, in the original's proportions. Around it, a red
 // arc fills as the day passes (midnight to midnight): "time passing away".
-// The hands are set from the real time on every frame, so the second hand
-// sweeps smoothly and continuously like a mechanical watch.
+// The second hand sweeps in CSS (8 steps a second, no JavaScript per frame);
+// the other hands and the arc are set once a minute, so an idle page costs
+// almost nothing on a slow PC.
 const clockMarks = Array.from({ length: 12 }, (_, i) => {
     const major = i % 3 === 0;
     const w = major ? 6 : 3;
@@ -272,39 +288,42 @@ const clock = () => html`<div class="clock" data-clock role="img" aria-label="Cu
         ${clockMarks}
         <rect class="clock__hand clock__hand--h" data-hand="h" x="96.5" y="60" width="7" height="44" rx="3.5"/>
         <rect class="clock__hand clock__hand--m" data-hand="m" x="97.5" y="36" width="5" height="68" rx="2.5"/>
-        <rect class="clock__hand clock__hand--s" data-hand="s" x="98.5" y="30" width="3" height="88" rx="1.5"/>
+        <rect class="clock__hand clock__hand--s" data-sweep x="98.5" y="30" width="3" height="88" rx="1.5"/>
         <circle class="clock__cap" cx="100" cy="100" r="8"/>
     </svg>
 </div>`;
 
-// Runs once per screen frame while the page is visible (browsers pause it in
-// background tabs, and it picks up the exact time again on return).
+// Runs at the top of every minute (and when the tab becomes visible again).
 function tickClocks() {
     const now = new Date();
     const sec = now.getSeconds() + now.getMilliseconds() / 1000;
     const min = now.getMinutes() + sec / 60;
     const hour = (now.getHours() % 12) + min / 60;
-    const angles = { h: hour * 30, m: min * 6, s: sec * 6 };
+    const angles = { h: hour * 30, m: min * 6 };
     const dayGone = ((now.getHours() * 60 + min) / 1440) * 100; // % of today passed
     const label = `Current time ${pad(now.getHours())}:${pad(now.getMinutes())}, ${Math.floor(dayGone)}% of today has passed`;
     for (const el of document.querySelectorAll('[data-clock]')) {
         for (const hand of el.querySelectorAll('[data-hand]')) {
             hand.setAttribute('transform', `rotate(${angles[hand.dataset.hand].toFixed(2)} 100 100)`);
         }
+        // A negative delay starts the 60s sweep at the real second.
+        el.querySelector('[data-sweep]').style.animationDelay = `-${sec.toFixed(3)}s`;
         el.querySelector('[data-day]').setAttribute('stroke-dasharray', `${dayGone.toFixed(3)} 100`);
         if (el.getAttribute('aria-label') !== label) {
             el.setAttribute('aria-label', label);
             el.title = `${Math.floor(dayGone)}% of today has passed · ${now.toLocaleString(undefined, { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}`;
         }
     }
-    requestAnimationFrame(tickClocks);
+    clearTimeout(clockTimer);
+    clockTimer = setTimeout(tickClocks, 60000 - now.getSeconds() * 1000 - now.getMilliseconds() + 50);
 }
 
-let clocksRunning = false;
+let clockTimer;
 function startClocks() {
-    if (clocksRunning) return;
-    clocksRunning = true;
-    requestAnimationFrame(tickClocks);
+    if (clockTimer) return;
+    tickClocks();
+    // Timers are throttled in hidden tabs; catch up as soon as the tab is back.
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) tickClocks(); });
 }
 
 // Letter-roll label (Uiverse, KINGFRESS) for the top-bar pills: two copies of
@@ -341,7 +360,8 @@ export async function page(title, { auth = true } = {}) {
         const current = (...names) => (names.some((n) => section.startsWith(n)) ? 'page' : 'false');
         nav = html`<nav class="app-nav" aria-label="Main">
             <a class="top-btn" href="dashboard.html" aria-current="${current('dashboard')}">${roll('Dashboard')}</a>
-            <a class="top-btn" href="projects.html" aria-current="${current('project', 'board', 'task', 'activity')}">${roll('Projects')}</a>
+            <a class="top-btn" href="projects.html" aria-current="${current('project', 'board', 'task', 'activity', 'analytics')}">${roll('Projects')}</a>
+            <a class="top-btn top-btn--icon" href="search.html" aria-current="${current('search')}" aria-label="Search" title="Search">${icon('search', 'top-btn__icon')}</a>
         </nav>`;
         actions = html`
             <a class="top-btn notification-link" href="notifications.html" aria-current="${current('notifications')}" aria-label="Notifications${count ? `, ${count} unread` : ''}">
@@ -358,7 +378,7 @@ export async function page(title, { auth = true } = {}) {
         <main class="app-main" id="main-content" tabindex="-1">
             <div class="container">
                 <div id="alerts" aria-live="polite" aria-atomic="true"></div>
-                <div id="content"><p class="text-muted">Loading…</p></div>
+                <div id="content">${loader({ cls: 'eyes--page' })}</div>
             </div>
         </main>
         <footer class="app-footer"><div class="container">${footer()}</div></footer>

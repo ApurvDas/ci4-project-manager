@@ -65,6 +65,11 @@ render(content, html`
         <div class="toolbar">
             ${canManage ? html`<a class="btn btn-secondary btn-slide" href="project-form.html?id=${id}">${slide('Edit', 'edit')}</a>` : ''}
             ${isOwner ? html`
+                ${project.status === 'completed'
+                    ? html`<form class="inline-form" data-action="reopen"><button type="submit" class="btn btn-secondary btn-slide">${slide('Reopen', 'reopen')}</button></form>`
+                    : project.status !== 'archived'
+                        ? html`<form class="inline-form" data-action="complete"><button type="submit" class="btn btn-secondary btn-slide">${slide('Mark complete', 'check-all')}</button></form>`
+                        : ''}
                 <form class="inline-form" data-action="status"><button type="submit" class="btn btn-secondary btn-slide">${project.status === 'archived' ? slide('Reopen', 'reopen') : slide('Archive', 'archive')}</button></form>
                 <form class="inline-form" data-action="delete-project"
                       data-confirm="Delete this project? Its tasks, comments and history go with it. This cannot be undone.">
@@ -97,6 +102,7 @@ render(content, html`
                     <div class="toolbar">
                         <a class="btn btn-secondary btn-sm" href="board.html?project=${id}">Board</a>
                         <a class="btn btn-secondary btn-sm" href="tasks.html?project=${id}">List</a>
+                        <a class="btn btn-secondary btn-sm" href="analytics.html?project=${id}">Analytics</a>
                         ${canWrite ? html`<a class="btn btn-primary btn-sm btn-slide" href="task-form.html?project=${id}">${slide('New task', 'plus')}</a>` : ''}
                     </div>
                 </div>
@@ -198,12 +204,14 @@ render(content, html`
     </div>`);
 
 const here = `project.html?id=${id}`;
+const setStatus = async (next, flash) => {
+    await call(sb.rpc('set_project_status', { p_project: id, p_status: next }));
+    go(here, flash);
+};
 const actions = {
-    status: async () => {
-        const next = project.status === 'archived' ? 'active' : 'archived';
-        await call(sb.rpc('set_project_status', { p_project: id, p_status: next }));
-        go(here, next === 'archived' ? 'Project archived.' : 'Project reopened.');
-    },
+    status: () => (project.status === 'archived' ? setStatus('active', 'Project reopened.') : setStatus('archived', 'Project archived.')),
+    complete: () => setStatus('completed', 'Project marked complete.'),
+    reopen: () => setStatus('active', 'Project reopened.'),
     'delete-project': async () => {
         await call(sb.rpc('delete_project', { p_project: id }));
         go('projects.html', 'Project deleted.');
