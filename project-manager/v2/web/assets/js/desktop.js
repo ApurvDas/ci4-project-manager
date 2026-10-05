@@ -6,7 +6,7 @@
 //   * "Sign in with your browser": the website signs in and hands the session back by a link.
 // It reads everything from the local copy, so it keeps working offline.
 import * as store from './store.js';
-import { sb, siteUrl, today, nowTime } from './app.js';
+import { sb, siteUrl, today, nowTime, showAlert, errorMessage } from './app.js';
 
 const tauri = window.__TAURI__;
 const quiet = () => {};
@@ -22,27 +22,41 @@ export function links() {
         event.preventDefault();
         tauri.opener.openUrl(siteUrl(a.getAttribute('href')));
     }, true);
-    tauri.event.listen('auth-link', ({ payload }) => finishBrowserSignIn(payload).catch(quiet));
+    tauri.event.listen('auth-link', ({ payload }) => finishBrowserSignIn(payload).catch((error) => showAlert(errorMessage(error))));
 }
 
 // The random code ties the session that comes back to this request, so a link from anywhere
-// else can't sign the app in (to someone else's account, say).
+// else can't sign the app in (to someone else's account, say). It is kept for a while and reused,
+// so pressing the button again (the browser can be slow to appear) doesn't strand the first tab.
 const STATE = 'browserSignIn';
+const FRESH_FOR = 15 * 60_000;
+
+function pendingState() {
+    const [state, at] = (localStorage.getItem(STATE) ?? '').split(' ');
+    return state && Date.now() - Number(at) < FRESH_FOR ? state : null;
+}
 
 export function signInWithBrowser() {
-    const state = crypto.randomUUID();
-    localStorage.setItem(STATE, state);
+    let state = pendingState();
+    if (!state) {
+        state = crypto.randomUUID();
+        localStorage.setItem(STATE, `${state} ${Date.now()}`);
+    }
     return tauri.opener.openUrl(siteUrl(`login.html?desktop=${state}`));
 }
 
 // The shell passes on apurvdas-pm://auth#state=…&access_token=…&refresh_token=…
 async function finishBrowserSignIn(url) {
     const got = new URLSearchParams(new URL(url).hash.slice(1));
-    const state = localStorage.getItem(STATE);
-    if (!state || got.get('state') !== state) return;
-    localStorage.removeItem(STATE);
+    const state = pendingState();
+    if (!state || got.get('state') !== state) {
+        showAlert('That sign-in has expired or came from somewhere else. Press "Sign in with your browser" to start again.', 'warning');
+        return;
+    }
     const { error } = await sb.auth.setSession({ access_token: got.get('access_token'), refresh_token: got.get('refresh_token') });
-    if (!error) location.href = 'dashboard.html';
+    if (error) throw new Error(`The website signed you in, but the app couldn't use it (${error.message}). Press "Sign in with your browser" to try again.`);
+    localStorage.removeItem(STATE);
+    location.href = 'dashboard.html';
 }
 
 const myTimer = (s) => s.time_entries.find((e) => e.user_id === s.me.id && !e.ended_at);

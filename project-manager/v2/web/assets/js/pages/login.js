@@ -62,9 +62,10 @@ onSubmit(content.querySelector('form'), async ({ email, password }) => {
         render(content, html`
             <div class="auth-header">
                 <h1>You're signed in</h1>
-                <p>Allow your browser to open Project Manager, then you can close this tab.</p>
+                <p>Your browser asks to open Project Manager: allow it, and the app signs in. Then you can close this tab.</p>
             </div>
-            <a class="btn btn-primary btn-block" href="${link}" data-open-app>Open Project Manager</a>`);
+            <a class="btn btn-primary btn-block" href="${link}" data-open-app>Open Project Manager</a>
+            <p class="auth-hint">Nothing happened? Press the button. This sign-in works for the next 15 minutes.</p>`);
         location.href = link;
         return;
     }

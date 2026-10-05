@@ -104,6 +104,10 @@ test('Sign in with your browser: the website signs in and hands back only the se
     expect(opened).toMatch(/^https:\/\/apurvdas\.github\.io\/ci4-project-manager\/login\.html\?desktop=[0-9a-f-]{36}$/);
     const state = new URL(opened).searchParams.get('desktop');
 
+    // Pressing it again (the browser can be slow to appear) reuses the code, so either tab works.
+    await page.click('[data-browser-sign-in]');
+    expect(await page.evaluate(() => window.__opened.at(-1))).toBe(opened);
+
     // The website half, in an ordinary tab (no shell), on the local site.
     const site = await context.newPage();
     await site.goto(`/login.html?desktop=${state}`);
@@ -113,11 +117,15 @@ test('Sign in with your browser: the website signs in and hands back only the se
     const link = await site.locator('[data-open-app]').getAttribute('href');
     expect(link).toMatch(new RegExp(String.raw`^apurvdas-pm://auth#state=${state}&access_token=[\w.-]+&refresh_token=\w+$`));
 
-    // A link carrying any other code is ignored...
+    // A link carrying any other code is refused, and says so...
     const forged = link.replace(state, '00000000-0000-0000-0000-000000000000');
     await page.evaluate((url) => window.__listeners['auth-link']({ payload: url }), forged);
-    await page.waitForTimeout(1000);
+    await expect(page.locator('.alert-warning')).toContainText('expired or came from somewhere else');
     await expect(page).toHaveURL(/login\.html/);
+
+    // ...as is a broken session, without using up the code.
+    await page.evaluate((url) => window.__listeners['auth-link']({ payload: url }), link.replace(/access_token=[^&]+/, 'access_token=broken'));
+    await expect(page.locator('.alert-error')).toContainText("couldn't use it");
 
     // ...and the one it asked for signs the app in.
     await page.evaluate((url) => window.__listeners['auth-link']({ payload: url }), link);
