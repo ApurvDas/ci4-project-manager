@@ -332,7 +332,7 @@ test.describe('Theme switch', () => {
 });
 
 test.describe('Typography and palette', () => {
-    test('all three self-hosted fonts load from our own origin', async ({ page }) => {
+    test('both self-hosted font families load from our own origin', async ({ page }) => {
         const fontRequests = [];
         page.on('request', (r) => {
             if (r.url().includes('/assets/fonts/')) fontRequests.push(r.url());
@@ -344,19 +344,18 @@ test.describe('Typography and palette', () => {
 
         const loaded = await page.evaluate(async () => {
             await Promise.all([
-                document.fonts.load('400 1em "Source Code Pro Web"'),
-                document.fonts.load('700 1em "Iosevka Term Slab Web"'),
-                document.fonts.load('400 1em "Terminess Web"'),
+                document.fonts.load('400 1em "Google Sans Code Web"'),
+                document.fonts.load('700 1em "Geist Mono Web"'),
+                document.fonts.load('400 1em "Geist Mono Web"'),
             ]);
             return {
-                body: document.fonts.check('400 1em "Source Code Pro Web"'),
-                display: document.fonts.check('700 1em "Iosevka Term Slab Web"'),
-                mono: document.fonts.check('400 1em "Terminess Web"'),
-                tick: document.fonts.check('400 1em "Source Code Pro Web"', '✓'),
-                arrow: document.fonts.check('400 1em "Source Code Pro Web"', '→'),
+                body: document.fonts.check('400 1em "Google Sans Code Web"'),
+                display: document.fonts.check('700 1em "Geist Mono Web"'),
+                data: document.fonts.check('400 1em "Geist Mono Web"'),
+                arrow: document.fonts.check('400 1em "Google Sans Code Web"', '→'),
             };
         });
-        expect(loaded).toEqual({ body: true, display: true, mono: true, tick: true, arrow: true });
+        expect(loaded).toEqual({ body: true, display: true, data: true, arrow: true });
     });
 
     test('the accent is achromatic', async ({ page }) => {

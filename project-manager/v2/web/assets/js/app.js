@@ -77,6 +77,8 @@ const ICONS = {
     'cloud': '<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15a4.5 4.5 0 0 0 4.5 4.5H18a3.75 3.75 0 0 0 1.332-7.257 3 3 0 0 0-3.758-3.848 5.25 5.25 0 0 0-10.233 2.33A4.502 4.502 0 0 0 2.25 15Z"/>', // cloud
     'cloud-arrow-up': '<path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z"/>', // cloud-arrow-up
     'warning': '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>', // exclamation-triangle
+    'moon': '<path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"/>',
+    'sun': '<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/>',
     'chart': '<path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/>', // chart-bar
 };
 
@@ -134,7 +136,7 @@ export const overdueBadge = (date, time) =>
 // The banner at the top of an overdue task or project page.
 export const overdueBanner = (noun, date, time) => html`
     <div class="alert alert-urgent mb-4" role="alert">
-        <strong>⚠ This ${noun} is ${overdueText(date, time).toLowerCase()}</strong> — it was due ${fmtDue(date, time)}. Deal with it now.
+        <strong>${icon('warning')} This ${noun} is ${overdueText(date, time).toLowerCase()}</strong> — it was due ${fmtDue(date, time)}. Deal with it now.
     </div>`;
 
 // [css class, label] for a deadline relative to now. Pass done=true for
@@ -157,7 +159,7 @@ export const dueTimeField = (value) => html`
     </div>`;
 
 export const progress = (percent) => html`
-    <span class="text-muted">${percent}%</span>
+    <span class="text-muted num">${percent}%</span>
     <span class="progress" role="img" aria-label="${percent}% of tasks complete"><span class="progress-bar" style="width: ${percent}%"></span></span>`;
 
 // One activity entry with its field diff. A creation has no old value, so only the new one shows.
@@ -262,8 +264,8 @@ const themeSwitch = (extra = '') => html`
     <label class="rocker rocker-header ${extra}" title="Switch light / dark mode">
         <input type="checkbox" data-theme-switch aria-label="Dark mode"
                ${document.documentElement.dataset.theme === 'dark' ? 'checked' : ''}>
-        <span class="switch-left" aria-hidden="true">☾</span>
-        <span class="switch-right" aria-hidden="true">☀</span>
+        <span class="switch-left" aria-hidden="true">${icon('moon')}</span>
+        <span class="switch-right" aria-hidden="true">${icon('sun')}</span>
     </label>`;
 
 function bindThemeSwitch() {

@@ -7,9 +7,9 @@ test('the above-the-fold fonts are preloaded with crossorigin', async ({ page })
     await page.goto('/dashboard.html');
     const links = page.locator('link[rel="preload"][as="font"]');
     expect(await links.evaluateAll((all) => all.map((l) => new URL(l.href).pathname))).toEqual([
-        '/assets/fonts/source-code-pro-400.woff2',
-        '/assets/fonts/source-code-pro-600.woff2',
-        '/assets/fonts/iosevka-term-slab-700.woff2',
+        '/assets/fonts/google-sans-code-400.woff2',
+        '/assets/fonts/google-sans-code-600.woff2',
+        '/assets/fonts/geist-mono-700.woff2',
     ]);
     expect(await links.evaluateAll((all) => all.every((l) => l.hasAttribute('crossorigin')))).toBe(true);
 });

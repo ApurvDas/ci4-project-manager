@@ -29,7 +29,7 @@ function view(data) {
                         <div>
                             <div class="list-item-title"><a href="task.html?project=${id}&id=${t.id}">${t.title}</a></div>
                             <div class="list-item-meta">
-                                <span class="${dueClass}">${dueLabel}</span>
+                                <span class="${dueClass} num">${dueLabel}</span>
                                 ${t.tags.map((g) => html`<span class="tag"><span class="tag-swatch" style="background: ${g.color}"></span>${g.name}</span>`)}
                             </div>
                         </div>

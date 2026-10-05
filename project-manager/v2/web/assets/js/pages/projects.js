@@ -13,7 +13,7 @@ function projectList(list, showRole) {
                 <div class="list-item-meta">
                     ${projectLate(p) ? overdueBadge(p.due_date, p.due_time) : ''}${badge('status', p.status)}${badge('priority', p.priority)}
                     ${showRole ? html`<span>${humanise(p.role)}</span>` : ''}
-                    ${p.due_date ? html`<span aria-hidden="true">·</span><span>Due ${fmtDue(p.due_date, p.due_time)}</span>` : ''}
+                    ${p.due_date ? html`<span aria-hidden="true">·</span><span class="num">Due ${fmtDue(p.due_date, p.due_time)}</span>` : ''}
                 </div>
             </div>
             <div class="list-item-aside">${progress(p.progress)}</div>

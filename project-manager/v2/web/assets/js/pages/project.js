@@ -106,7 +106,7 @@ function view(data) {
                             <li class="list-item ${taskLate(t) ? 'is-late' : ''}">
                                 <div>
                                     <div class="list-item-title"><a href="task.html?project=${id}&id=${t.id}">${t.title}</a></div>
-                                    <div class="list-item-meta">${t.due_date ? `Due ${fmtDue(t.due_date, t.due_time)}` : 'No due date'}</div>
+                                    <div class="list-item-meta">${t.due_date ? html`<span class="num">Due ${fmtDue(t.due_date, t.due_time)}</span>` : 'No due date'}</div>
                                 </div>
                                 <div class="list-item-aside">${taskLate(t) ? overdueBadge(t.due_date, t.due_time) : ''}${badge('priority', t.priority)}${badge('status', t.status)}</div>
                             </li>`)}

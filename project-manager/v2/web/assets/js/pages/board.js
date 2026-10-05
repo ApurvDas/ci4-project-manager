@@ -16,7 +16,7 @@ const card = (t, canWrite) => {
         <div class="board-card-tags">${t.tags.map((g) => html`<span class="tag"><span class="tag-swatch" style="background: ${g.color}"></span>${g.name}</span>`)}</div>
         <div class="board-card-foot">
             ${overdue ? overdueBadge(t.due_date, t.due_time) : ''}${badge('priority', t.priority)}
-            ${t.due_date ? html`<span class="${overdue ? 'is-overdue' : 'text-muted'}">${fmtShort(t.due_date)}${t.due_time ? `, ${t.due_time.slice(0, 5)}` : ''}</span>` : ''}
+            ${t.due_date ? html`<span class="${overdue ? 'is-overdue' : 'text-muted'} num">${fmtShort(t.due_date)}${t.due_time ? `, ${t.due_time.slice(0, 5)}` : ''}</span>` : ''}
         </div>
         ${people.length ? html`<div class="board-card-people">${people.map((u) => html`<span class="avatar avatar-sm" title="${u}">${u[0]}</span>`)}</div>` : ''}
     </article>`;

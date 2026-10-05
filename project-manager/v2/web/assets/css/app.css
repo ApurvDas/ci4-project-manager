@@ -15,73 +15,84 @@
 
 /* 0. Typefaces =============================================================
 
-   Three self-hosted Nerd Fonts, all monospaced — the interface is deliberately
-   a terminal-flavoured one. Nothing is requested from a third party.
+   Two self-hosted monospaced families: the interface stays terminal-flavoured,
+   with one face to read in and one to look at. Nothing is requested from a
+   third party.
 
-   Built from the originals by fonts/build.py, which subsets away the thousands
-   of Powerline and Devicon glyphs this application never renders: 26 MB of
-   .ttf becomes about 115 KB of .woff2.
+     Google Sans Code  text and UI     open, rounded letters that stay readable
+                                       in long task titles and comments; the
+                                       four weights the interface uses
+     Geist Mono        display & data  crisp and geometric: headings get their
+                                       voice from a different shape rather than
+                                       just more weight, and the running timer
+                                       and the code input read as instruments
 
-   Each family is used for one role, chosen around the weights it actually
-   ships:
+   Built from the Nerd Font downloads (both SIL OFL 1.1, licences beside the
+   files) by subsetting to Latin, punctuation and the arrows and shapes the app
+   draws, which drops the thousands of icon glyphs: about 15 MB of .ttf/.otf
+   becomes 84 KB of .woff2. The recipe, per file:
 
-     Source Code Pro   body and UI   the only one with a 600, which the
-                                     interface needs in twelve places
-     Iosevka Term Slab headings      slab serif for contrast; needs 700 only,
-                                     so its missing 600 never matters
-     Terminess         code and diffs the two monospace slots, both at 400
+     python -m fontTools.subset <font> --flavor=woff2 --drop-tables+=BASE
+       --unicodes=U+0020-007E,U+00A0-017F,U+0131,U+0152-0153,U+02C6,U+02DA,
+         U+02DC,U+2010-2027,U+2030-203A,U+2044,U+20AC,U+20B9,U+2122,
+         U+2190-2193,U+2212,U+2215,U+2260,U+2264-2265,U+25A0-25AA,U+25B2-25BC
+       --layout-features=kern,liga,calt,ccmp,locl,mark,mkmk,tnum,case,zero
+
+   (BASE is dropped because the Nerd Font patch leaves Google Sans Code's
+   malformed; browsers don't use it.) Symbols neither face has (the ticks, the
+   theme switch's moon and sun, the warning sign) come from the system's
+   symbol font, as they always have.
 
    font-display: swap means text paints immediately in the fallback and
    re-renders when the font arrives, rather than being invisible.
    ========================================================================== */
 
-/* Source Code Pro — body and UI */
+/* Google Sans Code: text and UI */
 @font-face {
-    font-family: "Source Code Pro Web";
-    src: url("../fonts/source-code-pro-400.woff2") format("woff2");
+    font-family: "Google Sans Code Web";
+    src: url("../fonts/google-sans-code-400.woff2") format("woff2");
     font-weight: 400;
     font-style: normal;
     font-display: swap;
 }
 
 @font-face {
-    font-family: "Source Code Pro Web";
-    src: url("../fonts/source-code-pro-500.woff2") format("woff2");
+    font-family: "Google Sans Code Web";
+    src: url("../fonts/google-sans-code-500.woff2") format("woff2");
     font-weight: 500;
     font-style: normal;
     font-display: swap;
 }
 
 @font-face {
-    font-family: "Source Code Pro Web";
-    src: url("../fonts/source-code-pro-600.woff2") format("woff2");
+    font-family: "Google Sans Code Web";
+    src: url("../fonts/google-sans-code-600.woff2") format("woff2");
     font-weight: 600;
     font-style: normal;
     font-display: swap;
 }
 
 @font-face {
-    font-family: "Source Code Pro Web";
-    src: url("../fonts/source-code-pro-700.woff2") format("woff2");
+    font-family: "Google Sans Code Web";
+    src: url("../fonts/google-sans-code-700.woff2") format("woff2");
     font-weight: 700;
     font-style: normal;
     font-display: swap;
 }
 
-/* Iosevka Term Slab — headings */
+/* Geist Mono: headings, the running timer and the verification code input */
 @font-face {
-    font-family: "Iosevka Term Slab Web";
-    src: url("../fonts/iosevka-term-slab-700.woff2") format("woff2");
-    font-weight: 700;
-    font-style: normal;
-    font-display: swap;
-}
-
-/* Terminess — code, value diffs and the verification code input */
-@font-face {
-    font-family: "Terminess Web";
-    src: url("../fonts/terminess-400.woff2") format("woff2");
+    font-family: "Geist Mono Web";
+    src: url("../fonts/geist-mono-400.woff2") format("woff2");
     font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Geist Mono Web";
+    src: url("../fonts/geist-mono-700.woff2") format("woff2");
+    font-weight: 700;
     font-style: normal;
     font-display: swap;
 }
@@ -142,9 +153,9 @@
     /* Every role is monospaced, so each stack falls back to the generic
        monospace family rather than a proportional one — a fallback should
        change the typeface, not the whole layout. */
-    --font: "Source Code Pro Web", ui-monospace, SFMono-Regular, Consolas, monospace;
-    --font-display: "Iosevka Term Slab Web", "Source Code Pro Web", ui-monospace, Consolas, monospace;
-    --font-mono: "Terminess Web", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --font: "Google Sans Code Web", ui-monospace, SFMono-Regular, Consolas, monospace;
+    --font-display: "Geist Mono Web", "Google Sans Code Web", ui-monospace, Consolas, monospace;
+    --font-mono: "Geist Mono Web", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
     --header-height: 60px;
 }
@@ -205,6 +216,12 @@ html {
     -webkit-text-size-adjust: 100%;
 }
 
+/* The hidden attribute must win over a component's own display (an .inline-form
+   is inline-flex, so without this a hidden one stayed on screen). */
+[hidden] {
+    display: none !important;
+}
+
 body {
     min-height: 100vh;
     background: var(--bg);
@@ -216,9 +233,9 @@ body {
     font-size: 14px;
     line-height: 1.55;
     -webkit-font-smoothing: antialiased;
-    /* Source Code Pro is a coding face with -> and != ligatures. Welcome in a
-       code block, wrong in a task title like "Fix != comparison", so they are
-       switched off everywhere except the .font-mono slots below. */
+    /* Coding faces can join -> and != into ligatures. Welcome in a code block,
+       wrong in a task title like "Fix != comparison", so they are switched off
+       everywhere except the .font-mono slots below. */
     font-variant-ligatures: none;
     font-feature-settings: "liga" 0, "calt" 0;
 }
@@ -743,6 +760,21 @@ button, input, select, textarea {
     letter-spacing: 0;
 }
 
+/* Numbers are data, so every standalone number takes the data face: counts,
+   percentages, dates, times and durations. Containers that only ever hold a
+   number are listed here; a number sitting among words is marked .num where
+   it is rendered. A number inside a sentence or a title stays in the text face.
+   Geist Mono ships 400 and 700, so a 600 here renders at 700. */
+.num,
+.stat-value,
+.panel-head > .badge,
+.board-column-head > .badge,
+.activity-time,
+.meta-list dd,
+.member-bars__value {
+    font-family: var(--font-mono);
+}
+
 .stat-label {
     margin-top: var(--space-1);
     color: var(--text-muted);
@@ -972,11 +1004,9 @@ button, input, select, textarea {
 
 .activity-diff {
     margin-top: var(--space-1);
-    /* Source Code Pro rather than the Terminess mono face. Terminess is an
-       outline conversion of a bitmap terminal font: crisp at the pixel sizes it
-       was drawn for, thin and blurry at the 10.5px this block used. The body
-       face is monospaced too, so the columns still line up. */
-    font-family: var(--font);
+    /* Old and new values are data, so they take the data face: Geist Mono stays
+       crisp at this small size, where the earlier bitmap-derived face blurred. */
+    font-family: var(--font-mono);
     font-size: 0.8125rem;
     color: var(--text-muted);
 }
@@ -1902,6 +1932,17 @@ button, input, select, textarea {
   transform: skewY(65deg);
 }
 
+/* Drawn moon and sun (Heroicons) in place of the ☾ and ☀ characters, which
+   neither typeface has. Sized like the glyphs they replace. */
+.switch-left .icon,
+.switch-right .icon {
+  width: 1.35em;
+  height: 1.35em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.25;
+}
+
 input:checked + .switch-left {
   background-color: #0084d0;
   color: #fff;
@@ -2252,6 +2293,19 @@ body {
     border-left-color: var(--danger);
     color: var(--danger);
     font-size: 0.9rem;
+}
+
+/* A drawn warning sign rather than the ⚠ character, which neither typeface
+   has and the system would fill in from a third font. */
+.alert-urgent .icon {
+    display: inline-block;
+    width: 1.15em;
+    height: 1.15em;
+    margin-right: 0.2em;
+    vertical-align: -0.22em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
 }
 
 /* Phones: list rows stack, so pin an unread dot to the row's corner rather
@@ -2750,7 +2804,7 @@ body {
 .chart-axis {
   fill: var(--text-muted);
   font-size: 11px;
-  font-family: var(--font);
+  font-family: var(--font-mono); /* axis labels are numbers and dates: data */
 }
 
 .chart-bar {

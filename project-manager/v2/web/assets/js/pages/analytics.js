@@ -82,7 +82,7 @@ function memberBars(rows) {
 
 const table = (head, rows) => html`<details class="chart-table"><summary>Show as table</summary>
     <table><thead><tr>${head.map((h) => html`<th scope="col">${h}</th>`)}</tr></thead>
-    <tbody>${rows.map((r) => html`<tr>${r.map((c) => html`<td>${c}</td>`)}</tr>`)}</tbody></table></details>`;
+    <tbody>${rows.map((r) => html`<tr>${r.map((c) => html`<td class="${/^\d/.test(String(c)) ? 'num' : ''}">${c}</td>`)}</tr>`)}</tbody></table></details>`;
 
 const estimateNote = t.estimateMinutes
     ? `${fmtMinutes(a.loggedMinutes)} of ${fmtMinutes(t.estimateMinutes)}`

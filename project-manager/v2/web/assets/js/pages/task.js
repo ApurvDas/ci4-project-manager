@@ -131,8 +131,8 @@ function view(data) {
         ${timeEntries.length ? html`<ul class="list time-entries">${timeEntries.slice(0, 10).map((e) => html`
             <li class="list-item">
                 <div>
-                    <div class="list-item-title">${e.profile.username} · ${e.ended_at ? fmtMinutes(entryMinutes(e)) : 'running'}</div>
-                    <div class="list-item-meta"><span>${fmtDateTime(e.started_at)}</span>${e.note ? html`<span>${e.note}</span>` : ''}</div>
+                    <div class="list-item-title">${e.profile.username} · ${e.ended_at ? html`<span class="num">${fmtMinutes(entryMinutes(e))}</span>` : 'running'}</div>
+                    <div class="list-item-meta"><span class="num">${fmtDateTime(e.started_at)}</span>${e.note ? html`<span>${e.note}</span>` : ''}</div>
                 </div>
                 ${e.user_id === me.id && e.ended_at ? html`<span class="checklist-tools"><button type="button" class="box-button box-button--danger" data-delete-time="${e.id}" aria-label="Delete time entry" title="Delete"><span class="box-button__face">${icon('trash')}</span></button></span>` : ''}
             </li>`)}</ul>` : ''}

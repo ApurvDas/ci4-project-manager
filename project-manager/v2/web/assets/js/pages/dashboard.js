@@ -44,7 +44,7 @@ function view({ d, tags }) {
                         return html`<li class="list-item ${taskLate(t) ? 'is-late' : ''}">
                             <div>
                                 <div class="list-item-title"><a href="task.html?project=${t.project_id}&id=${t.id}">${t.title}</a></div>
-                                <div class="list-item-meta"><span>${t.project_name}</span><span aria-hidden="true">·</span><span class="${dueClass}">${dueLabel}</span></div>
+                                <div class="list-item-meta"><span>${t.project_name}</span><span aria-hidden="true">·</span><span class="${dueClass} num">${dueLabel}</span></div>
                                 ${tags[t.id]?.length ? html`<div class="list-item-tags">${tags[t.id].map((g) => html`<span class="tag"><span class="tag-swatch" style="background: ${g.color}"></span>${g.name}</span>`)}</div>` : ''}
                             </div>
                             <div class="list-item-aside">${taskLate(t) ? overdueBadge(t.due_date, t.due_time) : ''}${badge('priority', t.priority)}${badge('status', t.status)}</div>
