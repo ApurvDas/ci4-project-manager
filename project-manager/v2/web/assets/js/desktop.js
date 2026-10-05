@@ -2,10 +2,11 @@
 // loaded by app.js only when window.__TAURI__ exists, so the website never runs any of it.
 //   * the tray icon's tooltip shows the running timer, and its "Stop timer" menu item stops it;
 //   * Windows notifications for new notifications and for tasks due within the hour;
-//   * links that belong on the website (email sign-in, password reset) open in the default browser.
+//   * links that belong on the website (email sign-in, password reset) open in the default browser;
+//   * "Sign in with your browser": the website signs in and hands the session back by a link.
 // It reads everything from the local copy, so it keeps working offline.
 import * as store from './store.js';
-import { siteUrl, today, nowTime } from './app.js';
+import { sb, siteUrl, today, nowTime } from './app.js';
 
 const tauri = window.__TAURI__;
 const quiet = () => {};
@@ -21,6 +22,27 @@ export function links() {
         event.preventDefault();
         tauri.opener.openUrl(siteUrl(a.getAttribute('href')));
     }, true);
+    tauri.event.listen('auth-link', ({ payload }) => finishBrowserSignIn(payload).catch(quiet));
+}
+
+// The random code ties the session that comes back to this request, so a link from anywhere
+// else can't sign the app in (to someone else's account, say).
+const STATE = 'browserSignIn';
+
+export function signInWithBrowser() {
+    const state = crypto.randomUUID();
+    localStorage.setItem(STATE, state);
+    return tauri.opener.openUrl(siteUrl(`login.html?desktop=${state}`));
+}
+
+// The shell passes on apurvdas-pm://auth#state=…&access_token=…&refresh_token=…
+async function finishBrowserSignIn(url) {
+    const got = new URLSearchParams(new URL(url).hash.slice(1));
+    const state = localStorage.getItem(STATE);
+    if (!state || got.get('state') !== state) return;
+    localStorage.removeItem(STATE);
+    const { error } = await sb.auth.setSession({ access_token: got.get('access_token'), refresh_token: got.get('refresh_token') });
+    if (!error) location.href = 'dashboard.html';
 }
 
 const myTimer = (s) => s.time_entries.find((e) => e.user_id === s.me.id && !e.ended_at);

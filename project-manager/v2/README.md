@@ -81,6 +81,12 @@ Task Manager's counters on 2026-10-01; your numbers will vary).
 appears for each new notification and, once, for each of your open tasks due within the hour. Sign-in
 by email link and password reset happen on the website: those links open it in your browser.
 
+**Signing in:** **Sign in with your browser** opens the website, so your browser's saved password and
+password reset work as usual. After you sign in there, the browser asks to open Project Manager:
+allow it and the app is signed in. The website makes the app its own session (it doesn't share the
+browser's), passes it back by an `apurvdas-pm://` link, and the app only accepts the sign-in it asked
+for. The email and password form below the button still works too.
+
 **Build it yourself** (needs [Rust](https://rustup.rs) and the Visual Studio C++ build tools):
 
 ```bash

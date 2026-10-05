@@ -1,13 +1,15 @@
 // A thin shell around the website's own pages (../web). Everything the app does lives in that
 // JavaScript, so web and desktop share one UI; this file only adds what a browser tab can't:
 // a tray icon (showing the running timer), staying alive in the tray when the window closes,
-// one running copy, and updates. Notifications and the website links are driven from
-// web/assets/js/desktop.js through the plugins registered below.
+// one running copy, updates, and the apurvdas-pm:// link the website uses to hand back a browser
+// sign-in. Notifications and the website links are driven from web/assets/js/desktop.js through
+// the plugins registered below.
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     AppHandle, Emitter, Manager, WindowEvent,
 };
+use tauri_plugin_deep_link::DeepLinkExt;
 
 /// The page tells us what the timer says; it becomes the tray icon's tooltip.
 #[tauri::command]
@@ -48,15 +50,29 @@ async fn check_for_update(app: AppHandle) -> tauri_plugin_updater::Result<()> {
 
 pub fn run() {
     tauri::Builder::default()
-        // A second launch brings the first one back instead of opening another window.
+        // A second launch brings the first one back instead of opening another window. Windows opens
+        // an apurvdas-pm:// link as a second launch; the deep-link feature passes the link on.
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| show_main(app)))
+        .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(tauri::generate_handler![tray_timer])
         .setup(|app| {
-            let open = MenuItem::with_id(app, "open", "Open Project Manager", true, None::<&str>)?;
+            // The installer registers the link for releases; a dev build isn't installed, so it registers itself.
+            #[cfg(debug_assertions)]
+            app.deep_link().register_all()?;
+            // The page checks the sign-in it was handed (see desktop.js), so pass the link on as it is.
+            let handle = app.handle().clone();
+            app.deep_link().on_open_url(move |event| {
+                for url in event.urls() {
+                    let _ = handle.emit("auth-link", url.to_string());
+                }
+                show_main(&handle);
+            });
+
+            let open =MenuItem::with_id(app, "open", "Open Project Manager", true, None::<&str>)?;
             let stop = MenuItem::with_id(app, "stop", "Stop timer", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&open, &stop, &quit])?;

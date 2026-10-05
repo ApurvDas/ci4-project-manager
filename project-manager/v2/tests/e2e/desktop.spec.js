@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { signIn, resetData, runSql, liveReady } from './helpers.js';
+import { signIn, resetData, runSql, liveReady, PASSWORD } from './helpers.js';
 
 // The Rust shell can't run in the browser tests, so these plant a stand-in for what Tauri puts on
 // `window.__TAURI__` and check exactly what the page asks the shell to do.
@@ -39,6 +39,7 @@ test('the tray shows the running timer, and its Stop timer item stops it', async
     await signIn(page, 'admin');
     await page.goto('/task.html?project=1&id=2');
     await page.click('[data-timer="start"]');
+    await expect(page.getByText('Timer started.')).toBeVisible(); // starting reloads the page; read the tray after that
     await expect(page.locator('[data-timer="stop"]')).toBeVisible();
     await expect.poll(() => trayTexts(page)).toContainEqual(expect.stringMatching(/^Timer 0:\d\d:\d\d · Build authentication$/));
 
@@ -94,4 +95,31 @@ test('the website itself is untouched: no shell calls, links work normally', asy
     await page.goto('/login.html');
     await page.getByRole('link', { name: 'use a login link' }).dispatchEvent('click');
     await expect(page).toHaveURL(/magic-link\.html/);
+});
+
+test('Sign in with your browser: the website signs in and hands back only the session the app asked for', async ({ page, context }) => {
+    await page.goto('/login.html');
+    await page.click('[data-browser-sign-in]');
+    const opened = await page.evaluate(() => window.__opened.at(-1));
+    expect(opened).toMatch(/^https:\/\/apurvdas\.github\.io\/ci4-project-manager\/login\.html\?desktop=[0-9a-f-]{36}$/);
+    const state = new URL(opened).searchParams.get('desktop');
+
+    // The website half, in an ordinary tab (no shell), on the local site.
+    const site = await context.newPage();
+    await site.goto(`/login.html?desktop=${state}`);
+    await site.fill('input[name="email"]', 'admin@example.test');
+    await site.fill('input[name="password"]', PASSWORD);
+    await site.click('button[type="submit"]');
+    const link = await site.locator('[data-open-app]').getAttribute('href');
+    expect(link).toMatch(new RegExp(String.raw`^apurvdas-pm://auth#state=${state}&access_token=[\w.-]+&refresh_token=\w+$`));
+
+    // A link carrying any other code is ignored...
+    const forged = link.replace(state, '00000000-0000-0000-0000-000000000000');
+    await page.evaluate((url) => window.__listeners['auth-link']({ payload: url }), forged);
+    await page.waitForTimeout(1000);
+    await expect(page).toHaveURL(/login\.html/);
+
+    // ...and the one it asked for signs the app in.
+    await page.evaluate((url) => window.__listeners['auth-link']({ payload: url }), link);
+    await expect(page.locator('.user-chip')).toContainText('admin');
 });
