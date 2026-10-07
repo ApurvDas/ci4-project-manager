@@ -82,11 +82,11 @@ test('a task due within the hour is warned about once', async ({ page }) => {
 test('email-link pages open the website in the default browser instead of the app', async ({ page }) => {
     await page.goto('/login.html');
     await page.getByRole('link', { name: 'use a login link' }).dispatchEvent('click'); // the link wraps onto two lines, so aim at it directly
-    await expect.poll(() => page.evaluate(() => window.__opened)).toEqual(['https://apurvdas.github.io/ci4-project-manager/magic-link.html']);
+    await expect.poll(() => page.evaluate(() => window.__opened)).toEqual(['https://apurvdas.github.io/project-manager/magic-link.html']);
     await expect(page).toHaveURL(/login\.html/);
 
     await page.getByRole('link', { name: 'Reset it' }).dispatchEvent('click');
-    await expect.poll(() => page.evaluate(() => window.__opened.at(-1))).toBe('https://apurvdas.github.io/ci4-project-manager/reset.html');
+    await expect.poll(() => page.evaluate(() => window.__opened.at(-1))).toBe('https://apurvdas.github.io/project-manager/reset.html');
     await expect(page).toHaveURL(/login\.html/);
 });
 
@@ -101,7 +101,7 @@ test('Sign in with your browser: the website signs in and hands back only the se
     await page.goto('/login.html');
     await page.click('[data-browser-sign-in]');
     const opened = await page.evaluate(() => window.__opened.at(-1));
-    expect(opened).toMatch(/^https:\/\/apurvdas\.github\.io\/ci4-project-manager\/login\.html\?desktop=[0-9a-f-]{36}$/);
+    expect(opened).toMatch(/^https:\/\/apurvdas\.github\.io\/project-manager\/login\.html\?desktop=[0-9a-f-]{36}$/);
     const state = new URL(opened).searchParams.get('desktop');
 
     // Pressing it again (the browser can be slow to appear) reuses the code, so either tab works.

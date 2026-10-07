@@ -1,4 +1,8 @@
-# Project Manager
+# Project Manager — v1 (CodeIgniter 4)
+
+> This is the **original PHP / CodeIgniter 4** build (branch `v1-codeigniter`). The live, hosted
+> version is **v2** — a Supabase + GitHub Pages rewrite in [`v2/`](v2). See the
+> [repository README](../README.md) for both.
 
 A project-management web application: projects, members with roles, tasks with
 multiple assignees, a Kanban board, comments, tags, checklists, notifications

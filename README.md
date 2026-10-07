@@ -5,9 +5,9 @@
 **A team project-management web app** — projects with member roles, a drag-and-drop Kanban board,
 checklists, tags, comments, deadlines, notifications and a full activity history.
 
-[![Live demo](https://img.shields.io/badge/Live_demo-apurvdas.github.io-2ea44f?style=for-the-badge&logo=github)](https://apurvdas.github.io/ci4-project-manager/)
+[![Live demo](https://img.shields.io/badge/Live_demo-apurvdas.github.io-2ea44f?style=for-the-badge&logo=github)](https://apurvdas.github.io/project-manager/)
 
-[![Hosted on GitHub Pages](https://img.shields.io/badge/Frontend-GitHub_Pages-222?logo=github)](https://apurvdas.github.io/ci4-project-manager/)
+[![Hosted on GitHub Pages](https://img.shields.io/badge/Frontend-GitHub_Pages-222?logo=github)](https://apurvdas.github.io/project-manager/)
 [![Supabase](https://img.shields.io/badge/Backend-Supabase-3ecf8e?logo=supabase&logoColor=white)](https://supabase.com)
 [![Postgres](https://img.shields.io/badge/DB-Postgres-4169e1?logo=postgresql&logoColor=white)](#)
 [![No build step](https://img.shields.io/badge/Build_step-none-blue)](#)
@@ -19,7 +19,7 @@ checklists, tags, comments, deadlines, notifications and a full activity history
 
 ## 🚀 Try it now
 
-**Live:** <https://apurvdas.github.io/ci4-project-manager/> — sign in with the shared guest account:
+**Live:** <https://apurvdas.github.io/project-manager/> — sign in with the shared guest account:
 
 | 🔑 Field | Value |
 |---|---|
@@ -148,10 +148,21 @@ flowchart LR
 
 ## 📂 Repository layout
 
+Both versions live together in one repo, each in its own folder:
+
 | Path | What's there |
 |---|---|
-| [`project-manager/v2`](project-manager/v2) | **Live version** — static front end (`web/`) + Supabase (`supabase/`). Its README covers running, testing and deploying. |
-| [`project-manager`](project-manager) | **Original** PHP / CodeIgniter 4 build. |
+| [`project-manager/v2`](project-manager/v2) | **v2 — live version:** static front end (`web/`) + Supabase (`supabase/`). Its README covers running, testing and deploying. |
+| [`project-manager`](project-manager) | **v1 — original** PHP / CodeIgniter 4 build. |
+
+### 🌿 Branches
+
+Branches are named by version type. The live site is deployed from **`v2-supabase`**.
+
+| Branch | Version | Role |
+|---|---|---|
+| **`v2-supabase`** | v2 | Default branch. GitHub Pages deploys the live app from here. |
+| **`v1-codeigniter`** | v1 | The PHP / CodeIgniter 4 version. |
 
 ---
 
@@ -222,7 +233,7 @@ licences; add a `LICENSE` file to set the terms for the application code.
 
 <div align="center">
 
-**🔗 Open the app:** <https://apurvdas.github.io/ci4-project-manager/>
+**🔗 Open the app:** <https://apurvdas.github.io/project-manager/>
 · Local dev: <http://localhost:8123>
 · Mailpit: <http://127.0.0.1:54324>
 · Supabase Studio: <http://127.0.0.1:54323>

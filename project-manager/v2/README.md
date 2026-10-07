@@ -10,7 +10,7 @@ Postgres (`supabase/migrations/*_rls.sql`, `*_logic.sql`); the UI only hides con
 
 ## Live demo
 
-https://apurvdas.github.io/ci4-project-manager/ — sign in as `guest@example.com` / `TourTheBoard-2026`.
+https://apurvdas.github.io/project-manager/ — sign in as `guest@example.com` / `TourTheBoard-2026`.
 
 The guest and its sample projects are built by `scripts/seed-showcase.mjs`. Re-run it to restore
 them (it resets the showcase accounts and recreates their projects; nothing else is touched):
@@ -50,11 +50,11 @@ Both need the local stack running.
 2. Push the schema: `npx supabase link --project-ref <ref>` then `npx supabase db push`.
    (Don't load `seed.sql` in production; register real accounts instead.)
 3. In Supabase → Authentication → URL Configuration, set the Site URL to
-   `https://apurvdas.github.io/ci4-project-manager/` and add it (with `**`) to the redirect URLs.
+   `https://apurvdas.github.io/project-manager/` and add it (with `**`) to the redirect URLs.
 4. In GitHub → Settings → Secrets and variables → Actions → **Variables**, add `SUPABASE_URL`
    and `SUPABASE_ANON_KEY` (Supabase → Project Settings → API).
 5. In GitHub → Settings → Pages, set the source to **GitHub Actions**.
-6. Push to `supabase-rewrite` or `main` (or run the "Deploy to GitHub Pages" workflow by hand).
+6. Push to `v2-supabase` (the default branch) — or run the "Deploy to GitHub Pages" workflow by hand.
 
 Free-tier notes: a Supabase project pauses after about a week without activity (resume it from the
 dashboard), and the built-in email sender is limited to a few emails an hour — add your own SMTP

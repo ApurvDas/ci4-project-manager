@@ -10,7 +10,7 @@ store.init(sb);
 
 // The desktop app runs from its own address, which an email link can't come back to: links in
 // emails (sign-up, sign-in link, password reset) must point at the website.
-const WEBSITE = 'https://apurvdas.github.io/ci4-project-manager/';
+const WEBSITE = 'https://apurvdas.github.io/project-manager/';
 export const siteUrl = (path) => new URL(path, window.__TAURI__ ? WEBSITE : location.href).href;
 
 // Live site only (the deploy sets window.BUILD): if the browser served this
