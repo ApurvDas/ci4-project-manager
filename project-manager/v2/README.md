@@ -67,9 +67,11 @@ has), a tray icon whose tooltip shows the running timer, Windows notifications, 
 and the full offline editing the website has. It is a thin [Tauri](https://tauri.app) shell in
 `desktop-app/` around `web/`, so web and desktop share one UI and one codebase.
 
-**Install:** download the `.exe` from the repository's **Releases** page and run it (it installs for
-your user, no admin needed). The installer is not code-signed, so Windows SmartScreen warns the first
-time: choose **More info → Run anyway**. After that the app offers updates itself at start-up.
+**Install:** download the `.exe` from the [**Releases** page](https://github.com/ApurvDas/project-manager/releases/latest)
+(direct: [`Project.Manager_0.2.1_x64-setup.exe`](https://github.com/ApurvDas/project-manager/releases/download/desktop-v0.2.1/Project.Manager_0.2.1_x64-setup.exe))
+and run it (it installs for your user, no admin needed). The installer is not code-signed, so Windows
+SmartScreen warns the first time: choose **More info → Run anyway**. After that the app offers updates
+itself at start-up. Full desktop notes are in [`desktop-app/README.md`](desktop-app/README.md).
 
 **Size and memory:** the installer is about 2 MB and the program 5 MB. Idle on the sign-in page, the
 app (its process plus the seven WebView2 processes it starts) used about 170 MB of private memory,

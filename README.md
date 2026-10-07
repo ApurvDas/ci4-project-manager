@@ -163,6 +163,20 @@ Branches are named by version type. The live site is deployed from **`v2-supabas
 |---|---|---|
 | **`v2-supabase`** | v2 | Default branch. GitHub Pages deploys the live app from here. |
 | **`v1-codeigniter`** | v1 | The PHP / CodeIgniter 4 version. |
+| **`desktop-app`** | — | Windows desktop (Tauri) wrapper around v2. |
+
+---
+
+## 💻 Desktop app (Windows)
+
+[![Download the Windows app](https://img.shields.io/badge/Download-Windows_app_(.exe)-0078d6?style=for-the-badge&logo=windows)](https://github.com/ApurvDas/project-manager/releases/latest)
+
+The same app in its own window — tray icon, Windows notifications, automatic updates and offline
+editing. It's a thin [Tauri](https://tauri.app) shell around the v2 front end.
+
+- **[Download the latest `.exe`](https://github.com/ApurvDas/project-manager/releases/latest)** — per-user install, no admin needed (SmartScreen: *More info → Run anyway* the first time; unsigned).
+- Current release: [`desktop-v0.2.1`](https://github.com/ApurvDas/project-manager/releases/download/desktop-v0.2.1/Project.Manager_0.2.1_x64-setup.exe) (~2 MB).
+- Build, behaviour and release steps: [`project-manager/v2/desktop-app`](project-manager/v2/desktop-app).
 
 ---
 
