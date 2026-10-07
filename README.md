@@ -178,6 +178,20 @@ editing. It's a thin [Tauri](https://tauri.app) shell around the v2 front end.
 - Current release: [`desktop-v0.2.1`](https://github.com/ApurvDas/project-manager/releases/download/desktop-v0.2.1/Project.Manager_0.2.1_x64-setup.exe) (~2 MB).
 - Build, behaviour and release steps: [`project-manager/v2/desktop-app`](project-manager/v2/desktop-app).
 
+**Install from one command** (Windows Command Prompt — downloads and runs the installer):
+
+```bat
+curl -L -o "%TEMP%\pm-setup.exe" https://github.com/ApurvDas/project-manager/releases/download/desktop-v0.2.1/Project.Manager_0.2.1_x64-setup.exe && "%TEMP%\pm-setup.exe"
+```
+
+<details><summary>PowerShell — always the latest release</summary>
+
+```powershell
+$u=(irm https://api.github.com/repos/ApurvDas/project-manager/releases/latest).assets|?{$_.name -like '*setup.exe'}|% browser_download_url; $o="$env:TEMP\pm-setup.exe"; iwr $u -OutFile $o; & $o
+```
+
+</details>
+
 ---
 
 ## 🛠️ Run it locally

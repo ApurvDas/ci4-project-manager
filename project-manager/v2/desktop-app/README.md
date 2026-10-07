@@ -18,6 +18,18 @@ Run the installer — it installs **per-user, no admin needed**. It isn't code-s
 SmartScreen warns the first time: choose **More info → Run anyway**. After that the app updates
 itself at start-up.
 
+**One-command install** (Windows Command Prompt — downloads and runs the installer):
+
+```bat
+curl -L -o "%TEMP%\pm-setup.exe" https://github.com/ApurvDas/project-manager/releases/download/desktop-v0.2.1/Project.Manager_0.2.1_x64-setup.exe && "%TEMP%\pm-setup.exe"
+```
+
+PowerShell, always grabbing the latest release:
+
+```powershell
+$u=(irm https://api.github.com/repos/ApurvDas/project-manager/releases/latest).assets|?{$_.name -like '*setup.exe'}|% browser_download_url; $o="$env:TEMP\pm-setup.exe"; iwr $u -OutFile $o; & $o
+```
+
 ## 🖥️ What it does differently from the browser
 
 | Feature | Behaviour |
